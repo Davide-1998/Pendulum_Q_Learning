@@ -18,10 +18,9 @@ class EpsilonGreedy:
             if log:
                 print("Random control", control)
             return control
-        
-        return self.optimal(state,Q,log)
 
-        
+        return self.optimal(state, Q, log)
+
     def optimal(self, x, Q, log=False):
         control = list()
         inputs = np.array([x])
@@ -30,8 +29,8 @@ class EpsilonGreedy:
         if len(self.controls) == 1:
             control.append(index)
         else:
-            control.append(index%len(self.controls[0]))
+            control.append(index % len(self.controls[0]))
             control.append(int(np.floor(index/len(self.controls[1]))))
         if log:
-            print("Control",control)
+            print("Control", control)
         return control

@@ -20,7 +20,8 @@ import time
 
 class Visual:
     '''
-    Class representing one 3D mesh of the robot, to be attached to a joint. The class contains:
+    Class representing one 3D mesh of the robot, to be attached to a joint.
+    The class contains:
     * the name of the 3D objects inside Gepetto viewer.
     * the ID of the joint in the kinematic tree to which the body is attached.
     * the placement of the body with respect to the joint frame.
@@ -41,11 +42,13 @@ class Pendulum:
     '''
     Define a class Pendulum with nbJoint joints.
     The members of the class are:
-    * viewer: a display encapsulating a gepetto viewer client to create 3D objects and place them.
+    * viewer: a display encapsulating a gepetto viewer client to create 3D
+              objects and place them.
     * model: the kinematic tree of the robot.
     * data: the temporary variables to be used by the kinematic algorithms.
-    * visuals: the list of all the 'visual' 3D objects to render the robot, each element of the list being
-    an object Visual (see above).    
+    * visuals: the list of all the 'visual' 3D objects to render the robot,
+               each element of the list being
+    an object Visual (see above).
     '''
 
     def __init__(self, nbJoint=1, noise_stddev=0.0):
