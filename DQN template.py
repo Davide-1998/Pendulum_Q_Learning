@@ -124,25 +124,8 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    with tqdm(total=NO_OP_THRESHOLD) as pbar:
-        pbar.set_description("Filling experience replay")
-        filling_episodes = int(NO_OP_THRESHOLD/EPISODE_LENGHT)
-        for i in range(filling_episodes):
-            pendulum.reset()
-            u = pendulum.c2du(np.zeros(pendulum.nq))
-
-            for j in range(EPISODE_LENGHT):
-                x = pendulum.x.copy()
-
-                action_selection += 1
-                if action_selection > ACTION_SELECTION_THRESHOLD:
-                    u = policy(x, Q)
-                    action_selection = 1
-
-                next_x, cost = pendulum.step(u)
-
-                buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x)
-                pbar.update(1)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q,
+                ACTION_SELECTION_THRESHOLD)
 
     target_update = 0
     gradients_update = 0
