@@ -30,8 +30,8 @@ def get_critic(nx, nu):
     return model
 
 
-def update(x_batch, u_batch, cost_batch, x_next_batch, Q_target, Q,
-           critic_optimizer, discount_factor, nu):
+def update(x_batch, u_batch, cost_batch, x_next_batch, is_state_final_batch,
+           Q_target, Q, critic_optimizer, discount_factor, nu):
     """
     Update the weights of the Q network using the
     specified batch of data
@@ -40,13 +40,16 @@ def update(x_batch, u_batch, cost_batch, x_next_batch, Q_target, Q,
     with tf.GradientTape() as tape:
 
         target_output = Q_target(x_next_batch, training=True)
-        target_values = np.min(target_output, 1, keepdims=True)
+        target_values = np.array(np.min(target_output, 1, keepdims=True))
+        target_values[is_state_final_batch] = 0
         # Compute 1-step targets for the critic loss
         y = cost_batch + discount_factor*target_values
         # Compute batch of Values associated to the sampled batch of states
         Q_outputs = Q(x_batch, training=True)
         selection = np.arange(len(Q_outputs))
+
         if len(u_batch[0]) > 1:
+            # if there are 2 joints, discretize the action representation
             u_b = [item[0] + item[1] * nu for item in u_batch]
         else:
             u_b = np.ndarray.flatten(u_batch)
@@ -159,7 +162,8 @@ if __name__ == "__main__":
                 cost_to_go += discount*cost
                 discount *= DISCOUNT_FACTOR
 
-                buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x)
+                final = True if i == EPISODE_LENGHT - 1 else False
+                buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x, is_final=final)
 
                 data[e]['x'].append(x[0].copy())
                 data[e]['next_x'].append(next_x[0].copy())
@@ -172,9 +176,10 @@ if __name__ == "__main__":
                     cost_batch = np.array([b[2]
                                           for b in batch]).reshape((-1, 1))
                     x_next_batch = np.array([b[3] for b in batch])
+                    is_final_batch = [b[4] for b in batch]
 
                     _loss = update(x_batch, u_batch, cost_batch, x_next_batch,
-                                   Q_target, Q, critic_optimizer,
+                                   is_final_batch, Q_target, Q, critic_optimizer,
                                    DISCOUNT_FACTOR, pendulum.nu)
                     gradients_update = 1
                     data[e]['loss'].append(_loss)  # Takes the float value
@@ -215,8 +220,7 @@ if __name__ == "__main__":
         x = pendulum.x.copy()
         u = policy.optimal(x, Q)
         next_x, cost = pendulum.step(u)
-        cost += discount * cost
+        episode_cost += discount * cost
         discount *= DISCOUNT_FACTOR
-        episode_cost += cost
         pendulum.render()
     print("Final episode cost", episode_cost)

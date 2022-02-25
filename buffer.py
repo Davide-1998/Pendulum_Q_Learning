@@ -19,11 +19,12 @@ class ExperienceReplay:
         control = kwargs["u"]
         cost = kwargs["cost"]
         next_state = kwargs["next_x"]
+        is_final_state = kwargs["is_final"]
 
         if self.size() > self.max_size:
             self.memory.pop(0)
 
-        t = (state, control, cost, next_state)
+        t = (state, control, cost, next_state, is_final_state)
         self.memory.append(t)
 
     def sample(self, batch_size=1):
@@ -48,7 +49,7 @@ class ExperienceReplay:
                         action_selection = 1
 
                     next_x, cost = robot.step(u)
-
-                    self.add_transition(x=x, u=u, cost=cost, next_x=next_x)
+                    final = True if i == int(num_ep/len_ep) - 1 else False
+                    self.add_transition(x=x, u=u, cost=cost, next_x=next_x, is_final=final)
                     pbar.update(1)
             pbar.close()
