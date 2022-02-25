@@ -18,20 +18,20 @@ from tensorflow.python.ops.numpy_ops import np_config
 np_config.enable_numpy_behavior()
 
 
-def get_critic(nx, nu):
-    ''' Create the neural network to represent the Q function '''
-    inputs = layers.Input(nx)
+def get_critic(state_cardinality, possible_actions):
+    """ Create the neural network to represent the Q function """
+    inputs = layers.Input(state_cardinality)
     state_out1 = layers.Dense(16, activation="relu")(inputs)
     state_out2 = layers.Dense(32, activation="relu")(state_out1)
     state_out3 = layers.Dense(64, activation="relu")(state_out2)
     state_out4 = layers.Dense(64, activation="relu")(state_out3)
-    outputs = layers.Dense(nu)(state_out4)
+    outputs = layers.Dense(possible_actions)(state_out4)
     model = tf.keras.Model(inputs, outputs)
     return model
 
 
-def update(x_batch, u_batch, cost_batch, x_next_batch, is_state_final_batch,
-           Q_target, Q, critic_optimizer, discount_factor, nu):
+def update(states_batch, controls_batch, costs_batch, next_states_batch,
+           is_state_final_batch, Q_target, Q, optimizer, discount_factor, nu):
     """
     Update the weights of the Q network using the
     specified batch of data
@@ -39,20 +39,20 @@ def update(x_batch, u_batch, cost_batch, x_next_batch, is_state_final_batch,
     # all inputs are tf tensors
     with tf.GradientTape() as tape:
 
-        target_output = Q_target(x_next_batch, training=True)
+        target_output = Q_target(next_states_batch, training=True)
         target_values = np.array(np.min(target_output, 1, keepdims=True))
         target_values[is_state_final_batch] = 0
         # Compute 1-step targets for the critic loss
-        y = cost_batch + discount_factor*target_values
+        y = costs_batch + discount_factor * target_values
         # Compute batch of Values associated to the sampled batch of states
-        Q_outputs = Q(x_batch, training=True)
+        Q_outputs = Q(states_batch, training=True)
         selection = np.arange(len(Q_outputs))
 
-        if len(u_batch[0]) > 1:
+        if len(controls_batch[0]) > 1:
             # if there are 2 joints, discretize the action representation
-            u_b = [item[0] + item[1] * nu for item in u_batch]
+            u_b = [item[0] + item[1] * nu for item in controls_batch]
         else:
-            u_b = np.ndarray.flatten(u_batch)
+            u_b = np.ndarray.flatten(controls_batch)
 
         Q_values = Q_outputs[selection, u_b]
         batch_Q_values = np.reshape(Q_values, (-1, 1))
@@ -67,8 +67,8 @@ def update(x_batch, u_batch, cost_batch, x_next_batch, is_state_final_batch,
     # stabilizer used in the paper
     Capped_Q_grad = [tf.clip_by_value(g, -1, 1) for g in Q_grad]
 
-    # Update the critic backpropagating the gradients
-    critic_optimizer.apply_gradients(zip(Capped_Q_grad, Q.trainable_variables))
+    # Update the critic back propagating the gradients
+    optimizer.apply_gradients(zip(Capped_Q_grad, Q.trainable_variables))
 
     return Q_loss
 
@@ -80,11 +80,11 @@ if __name__ == "__main__":
     WEIGHTS_FILE_PATH = os.path.abspath("nn_weights.h5")
 
     EPISODES = 300
-    EPISODE_LENGHT = 2**8
+    EPISODE_LENGHT = 2 ** 8
 
-    EXPERIENCE_REPLAY_SIZE = 2**16
-    BATCH_SIZE = 2**6
-    NO_OP_THRESHOLD = 2**14
+    EXPERIENCE_REPLAY_SIZE = 2 ** 16
+    BATCH_SIZE = 2 ** 6
+    NO_OP_THRESHOLD = 2 ** 14
     DISCOUNT_FACTOR = 0.95
 
     EPSILON = 1
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     EPSILON_MIN = 0.001
     EPSILON_DECAY = 0.008 * 500
     # the target network is updated every N gradient descent
-    TARGET_UPDATE_THRESHOLD = 2**6
+    TARGET_UPDATE_THRESHOLD = 2 ** 6
     # the number of steps to execute between each gradient descent
     GRADIENT_DESCENT_THRESHOLD = 4
     # step skipping, number of steps passed
@@ -119,8 +119,8 @@ if __name__ == "__main__":
     nx = pendulum.nx
     nu = pendulum.nu
     nq = pendulum.nq
-    Q = get_critic(nx, nu**nq)
-    Q_target = get_critic(nx, nu**nq)
+    Q = get_critic(nx, nu ** nq)
+    Q_target = get_critic(nx, nu ** nq)
 
     # Set initial weights of targets equal to those of actor and critic
     Q_target.set_weights(Q.get_weights())
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q, 4)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q, 2)
 
     average_cost_to_go = 0
     best_average_cost_to_go = np.Inf
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         discount = 1
 
         with tqdm(total=EPISODE_LENGHT) as pbar:
-            pbar.set_description('Episode %d' % (e+1))
+            pbar.set_description('Episode %d' % (e + 1))
             for i in range(EPISODE_LENGHT):
 
                 x = pendulum.x.copy()
@@ -159,11 +159,12 @@ if __name__ == "__main__":
 
                 next_x, cost = pendulum.step(u)
 
-                cost_to_go += discount*cost
+                cost_to_go += discount * cost
                 discount *= DISCOUNT_FACTOR
 
                 final = True if i == EPISODE_LENGHT - 1 else False
-                buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x, is_final=final)
+                buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x,
+                                      is_final=final)
 
                 data[e]['x'].append(x[0].copy())
                 data[e]['next_x'].append(next_x[0].copy())
@@ -174,12 +175,13 @@ if __name__ == "__main__":
                     x_batch = np.array([b[0] for b in batch])
                     u_batch = np.array([b[1] for b in batch])
                     cost_batch = np.array([b[2]
-                                          for b in batch]).reshape((-1, 1))
+                                           for b in batch]).reshape((-1, 1))
                     x_next_batch = np.array([b[3] for b in batch])
                     is_final_batch = [b[4] for b in batch]
 
                     _loss = update(x_batch, u_batch, cost_batch, x_next_batch,
-                                   is_final_batch, Q_target, Q, critic_optimizer,
+                                   is_final_batch, Q_target, Q,
+                                   critic_optimizer,
                                    DISCOUNT_FACTOR, pendulum.nu)
                     gradients_update = 1
                     data[e]['loss'].append(_loss)  # Takes the float value
@@ -207,11 +209,12 @@ if __name__ == "__main__":
             save_network = 1
 
         proportion = e / EPISODES
-        EPSILON = max(EPSILON_MIN, np.exp(-EPSILON_DECAY*proportion))
+        EPSILON = max(EPSILON_MIN, np.exp(-EPSILON_DECAY * proportion))
         print("Epsilon", EPSILON)
         policy.epsilon = EPSILON
         print("")
 
+    # test training
     pendulum.reset()
     episode_cost = 0
     discount = 1
