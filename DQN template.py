@@ -80,7 +80,7 @@ if __name__ == "__main__":
     WEIGHTS_FILE_PATH = os.path.abspath("nn_weights.h5")
 
     EPISODES = 300
-    EPISODE_LENGHT = 2 ** 8
+    EPISODE_LENGTH = 2 ** 8
 
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
     BATCH_SIZE = 2 ** 6
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q, 2)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH, pendulum, policy, Q, 2)
 
     average_cost_to_go = 0
     best_average_cost_to_go = np.Inf
@@ -146,9 +146,9 @@ if __name__ == "__main__":
         cost_to_go = 0
         discount = 1
 
-        with tqdm(total=EPISODE_LENGHT) as pbar:
+        with tqdm(total=EPISODE_LENGTH) as pbar:
             pbar.set_description('Episode %d' % (e + 1))
-            for i in range(EPISODE_LENGHT):
+            for i in range(EPISODE_LENGTH):
 
                 x = pendulum.x.copy()
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
                 cost_to_go += discount * cost
                 discount *= DISCOUNT_FACTOR
 
-                final = True if i == EPISODE_LENGHT - 1 else False
+                final = True if i == EPISODE_LENGTH - 1 else False
                 buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x,
                                       is_final=final)
 
@@ -219,7 +219,7 @@ if __name__ == "__main__":
     episode_cost = 0
     discount = 1
     Q.load_weights(WEIGHTS_FILE_PATH)
-    for i in range(EPISODE_LENGHT):
+    for i in range(EPISODE_LENGTH):
         x = pendulum.x.copy()
         u = policy.optimal(x, Q)
         next_x, cost = pendulum.step(u)
