@@ -1,7 +1,10 @@
 import os.path
 
 import tensorflow as tf
-from tensorflow.keras import layers
+# from tensorflow.keras import layers
+# for some reason in this build the import above gives the error:
+# cannot find reference 'keras' in '__init__.py'
+from keras import layers
 import numpy as np
 from dpendulum import DPendulum
 from buffer import ExperienceReplay
@@ -29,10 +32,10 @@ def get_critic(nx, nu):
 
 def update(x_batch, u_batch, cost_batch, x_next_batch, Q_target, Q,
            critic_optimizer, discount_factor, nu):
-    '''
+    """
     Update the weights of the Q network using the
     specified batch of data
-    '''
+    """
     # all inputs are tf tensors
     with tf.GradientTape() as tape:
 
@@ -69,7 +72,7 @@ def update(x_batch, u_batch, cost_batch, x_next_batch, Q_target, Q,
 
 if __name__ == "__main__":
 
-    NUMBER_OF_JOINTS = 2
+    NUMBER_OF_JOINTS = 1
 
     WEIGHTS_FILE_PATH = os.path.abspath("nn_weights.h5")
 
@@ -124,8 +127,7 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q,
-                ACTION_SELECTION_THRESHOLD)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q, 4)
 
     target_update = 0
     gradients_update = 0

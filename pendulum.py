@@ -66,7 +66,7 @@ class Pendulum:
         self.NDT = 1      # Number of Euler steps per integration (internal)
         self.Kf = .10    # Friction coefficient
         self.vmax = 8.0    # Max velocity (clipped if larger)
-        self.umax = 3.0    # Max torque   (clipped if larger)
+        self.umax = 2.0    # Max torque   (clipped if larger)
         # If true, state is [cos(q),sin(q),qdot], else [q,qdot]
         self.withSinCos = False
 
