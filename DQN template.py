@@ -47,7 +47,7 @@ def update(x_batch, u_batch, cost_batch, x_next_batch, Q_target, Q,
         Q_outputs = Q(x_batch, training=True)
         selection = np.arange(len(Q_outputs))
         if len(u_batch[0]) > 1:
-            u_b = [u[0]+u[1]*nu for u in u_batch]
+            u_b = [item[0] + item[1] * nu for item in u_batch]
         else:
             u_b = np.ndarray.flatten(u_batch)
 
@@ -92,7 +92,8 @@ if __name__ == "__main__":
     TARGET_UPDATE_THRESHOLD = 2**6
     # the number of steps to execute between each gradient descent
     GRADIENT_DESCENT_THRESHOLD = 4
-    # step skipping, number of steps passed between the selection of a different action
+    # step skipping, number of steps passed
+    # between the selection of a different action
     ACTION_SELECTION_THRESHOLD = 1
     # the best network is saved once every N episode
     SAVE_NETWORK_THRESHOLD = 15
@@ -129,10 +130,6 @@ if __name__ == "__main__":
     # filling the experience replay buffer
     buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGHT, pendulum, policy, Q, 4)
 
-    target_update = 0
-    gradients_update = 0
-    action_selection = 0
-    save_network = 0
     average_cost_to_go = 0
     best_average_cost_to_go = np.Inf
 
@@ -149,7 +146,6 @@ if __name__ == "__main__":
         with tqdm(total=EPISODE_LENGHT) as pbar:
             pbar.set_description('Episode %d' % (e+1))
             for i in range(EPISODE_LENGHT):
-                logs = True if e+1 == EPISODES else False
 
                 x = pendulum.x.copy()
 
@@ -164,13 +160,6 @@ if __name__ == "__main__":
                 discount *= DISCOUNT_FACTOR
 
                 buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x)
-
-                if logs:
-                    print(i)
-                    print("x", x)
-                    print("u", u)
-                    print("cost", cost)
-                    print("")
 
                 data[e]['x'].append(x[0].copy())
                 data[e]['next_x'].append(next_x[0].copy())
@@ -196,9 +185,6 @@ if __name__ == "__main__":
                     target_update = 1
 
                 pbar.update(1)
-
-                if e + 1 == EPISODES:
-                    pendulum.render()
 
             pbar.close()
 
