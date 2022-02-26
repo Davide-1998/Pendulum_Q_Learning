@@ -30,7 +30,8 @@ def get_critic(state_cardinality, possible_actions):
 
 
 def update(states_batch, controls_batch, costs_batch, next_states_batch,
-           is_state_final_batch, Q_target, Q, optimizer, discount_factor, nu):
+           is_state_final_batch, Q_target, Q, optimizer, discount_factor,
+           controls):
     """
     Update the weights of the Q network using the
     specified batch of data
@@ -50,7 +51,7 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
         if len(controls_batch[0]) > 1:
             # if there are 2 joints, discretize the action representation
-            u_b = [item[0] + item[1] * nu for item in controls_batch]
+            u_b = [item[0] + item[1] * controls for item in controls_batch]
         else:
             u_b = np.ndarray.flatten(controls_batch)
 
@@ -73,6 +74,20 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
     return Q_loss
 
 
+def test_network(robot, Q, pi):
+    robot.reset()
+    episode_cost = 0
+    discount_factor = 1
+    for _ in range(EPISODE_LENGTH):
+        state = robot.x.copy()
+        control = pi.optimal(state, Q)
+        next_state, step_cost = robot.step(control)
+        episode_cost += discount_factor * step_cost
+        discount_factor *= DISCOUNT_FACTOR
+        robot.render()
+    return episode_cost
+
+
 if __name__ == "__main__":
 
     #####################################
@@ -83,7 +98,8 @@ if __name__ == "__main__":
     # the number of quantization levels for controls should be an odd number
     QUANTIZATION_LEVELS = 15
 
-    WEIGHTS_FILE_PATH = os.path.abspath("weights/nn_weights.h5")
+    BEST_WEIGHTS_FILE_PATH = os.path.abspath("weights/best_network_weights.h5")
+    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath("weights/last_network_weights.h5")
 
     EPISODES = 500
     EPISODE_LENGTH = 2 ** 8
@@ -95,8 +111,8 @@ if __name__ == "__main__":
 
     EPSILON = 1
     EPSILON_MAX = 1
-    EPSILON_MIN = 0.001
-    EPSILON_DECAY = 0.008 * 500
+    EPSILON_MIN = 0.01
+    EPSILON_DECAY = - 0.011 * 500
     # the target network is updated every N gradient descent
     TARGET_UPDATE_THRESHOLD = 2 ** 6
     # the number of steps to execute between each gradient descent
@@ -127,11 +143,11 @@ if __name__ == "__main__":
     nx = pendulum.nx
     nu = pendulum.nu
     nq = pendulum.nq
-    Q = get_critic(nx, nu ** nq)
-    Q_target = get_critic(nx, nu ** nq)
+    Q_network = get_critic(nx, nu ** nq)
+    Q_network_target = get_critic(nx, nu ** nq)
 
     # Set initial weights of targets equal to those of actor and critic
-    Q_target.set_weights(Q.get_weights())
+    Q_network_target.set_weights(Q_network.get_weights())
 
     # Set optimizer specifying the learning rates
     critic_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
@@ -139,7 +155,7 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH, pendulum, policy, Q, 2)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH, pendulum, policy, Q_network, 2)
 
     average_cost_to_go = 0
     best_average_cost_to_go = np.Inf
@@ -162,7 +178,7 @@ if __name__ == "__main__":
 
                 action_selection += 1
                 if action_selection > ACTION_SELECTION_THRESHOLD:
-                    u = policy(x, Q)
+                    u = policy(x, Q_network)
                     action_selection = 1
 
                 next_x, cost = pendulum.step(u)
@@ -182,21 +198,19 @@ if __name__ == "__main__":
                     batch = buffer.sample(BATCH_SIZE)
                     x_batch = np.array([b[0] for b in batch])
                     u_batch = np.array([b[1] for b in batch])
-                    cost_batch = np.array([b[2]
-                                           for b in batch]).reshape((-1, 1))
+                    cost_batch = np.array([b[2] for b in batch]).reshape((-1,1))
                     x_next_batch = np.array([b[3] for b in batch])
                     is_final_batch = [b[4] for b in batch]
 
                     _loss = update(x_batch, u_batch, cost_batch, x_next_batch,
-                                   is_final_batch, Q_target, Q,
-                                   critic_optimizer,
-                                   DISCOUNT_FACTOR, pendulum.nu)
+                                   is_final_batch, Q_network_target, Q_network,
+                                   critic_optimizer, DISCOUNT_FACTOR, nu)
                     gradients_update = 1
                     data[e]['loss'].append(_loss)  # Takes the float value
 
                 target_update += 1
                 if target_update > TARGET_UPDATE_THRESHOLD:
-                    Q_target.set_weights(Q.get_weights())
+                    Q_network_target.set_weights(Q_network.get_weights())
                     target_update = 1
 
                 pbar.update(1)
@@ -209,29 +223,27 @@ if __name__ == "__main__":
         if save_network > SAVE_NETWORK_THRESHOLD:
             average_cost_to_go /= SAVE_NETWORK_THRESHOLD
             if average_cost_to_go < best_average_cost_to_go:
-                print("Saving network with {} average cost to go"
-                      .format(average_cost_to_go))
-                Q.save_weights(WEIGHTS_FILE_PATH)
+                print(f"Saving network with {average_cost_to_go} average cost to go")
+                Q_network.save_weights(BEST_WEIGHTS_FILE_PATH)
                 best_average_cost_to_go = average_cost_to_go
             average_cost_to_go = 0
             save_network = 1
 
+        if e == EPISODES - 1:
+            Q_network.save_weights(TRAINED_WEIGHTS_FILE_PATH)
+
         proportion = e / EPISODES
-        EPSILON = max(EPSILON_MIN, np.exp(-EPSILON_DECAY * proportion))
+        EPSILON = max(EPSILON_MIN, np.exp(EPSILON_DECAY * proportion))
         print("Epsilon", EPSILON)
         policy.epsilon = EPSILON
         print("")
 
-    # test training
-    pendulum.reset()
-    episode_cost = 0
-    discount = 1
-    Q.load_weights(WEIGHTS_FILE_PATH)
-    for i in range(EPISODE_LENGTH):
-        x = pendulum.x.copy()
-        u = policy.optimal(x, Q)
-        next_x, cost = pendulum.step(u)
-        episode_cost += discount * cost
-        discount *= DISCOUNT_FACTOR
-        pendulum.render()
-    print("Final episode cost", episode_cost)
+    # test last trained networks
+
+    Q_network.load_weights(TRAINED_WEIGHTS_FILE_PATH)
+    print("Training of the network after the last episode")
+    test_network(pendulum, Q_network, policy)
+
+    Q_network.load_weights(BEST_WEIGHTS_FILE_PATH)
+    print("Training of the best trained network")
+    test_network(pendulum, Q_network, policy)
