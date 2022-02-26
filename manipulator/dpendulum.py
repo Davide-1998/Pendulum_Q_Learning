@@ -18,7 +18,7 @@ class DPendulum:
         self.nu = nu        # Number of discretization steps for joint torque
         self.uMax = self.pendulum.umax    # Max torque (u in [-umax,umax])
         self.dt = dt        # time step
-        self.DU = 2*self.uMax/self.nu  # discretization resolution for joint torque
+        self.DU = 2*self.uMax/self.nu # discretization resolution for joint torque
 
     @property
     def nq(self): return self.pendulum.nq

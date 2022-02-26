@@ -6,6 +6,8 @@ import tensorflow as tf
 # cannot find reference 'keras' in '__init__.py'
 from keras import layers
 import numpy as np
+from orca.orca import init
+
 from manipulator.dpendulum import DPendulum
 from buffer import ExperienceReplay
 from policy import EpsilonGreedy
@@ -74,11 +76,11 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
     return Q_loss
 
 
-def test_network(robot, Q, pi):
-    robot.reset()
+def test_network(robot, Q, pi, initial_state=None, episode_length=256):
+    robot.reset(initial_state)
     episode_cost = 0
     discount_factor = 1
-    for _ in range(EPISODE_LENGTH):
+    for _ in range(episode_length):
         state = robot.x.copy()
         control = pi.optimal(state, Q)
         next_state, step_cost = robot.step(control)
@@ -94,7 +96,7 @@ if __name__ == "__main__":
     # Hyper-parameters
     #####################################
 
-    NUMBER_OF_JOINTS = 1
+    NUMBER_OF_JOINTS = 2
     # the number of quantization levels for controls should be an odd number
     QUANTIZATION_LEVELS = 15
 
@@ -239,11 +241,34 @@ if __name__ == "__main__":
         print("")
 
     # test last trained networks
+    test_episodes = 3
 
     Q_network.load_weights(TRAINED_WEIGHTS_FILE_PATH)
-    print("Training of the network after the last episode")
-    test_network(pendulum, Q_network, policy)
+    print(f"Testing of the network after the last episode from {test_episodes} random starting positions")
+    for _ in range(3):
+        test_network(pendulum, Q_network, policy)
+
+    print(f"Testing of the network after the last episode {test_episodes} times from down position")
+    for _ in range(3):
+        # a bit of randomness to the down position
+        # q is in [pi-random,pi+random]
+        # no randomness to velocity
+        q = np.pi + np.random.rand(nq)*(0.2-(-0.2))+(-0.2)
+        v = np.zeros(nq)
+        state = np.hstack([q, v])
+        test_network(pendulum, Q_network, policy, state)
 
     Q_network.load_weights(BEST_WEIGHTS_FILE_PATH)
-    print("Training of the best trained network")
-    test_network(pendulum, Q_network, policy)
+    print(f"Testing of the best network from {test_episodes} random starting positions")
+    for _ in range(3):
+        test_network(pendulum, Q_network, policy)
+
+    print(f"Testing of the best network {test_episodes} times from down position")
+    for _ in range(3):
+        # a bit of randomness to the down position
+        # q is in [pi-random,pi+random]
+        # no randomness to velocity
+        q = np.pi + np.random.rand(nq) * (0.2 - (-0.2)) + (-0.2)
+        v = np.zeros(nq)
+        state = np.hstack([q, v])
+        test_network(pendulum, Q_network, policy, state)
