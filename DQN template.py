@@ -77,7 +77,7 @@ if __name__ == "__main__":
 
     NUMBER_OF_JOINTS = 1
 
-    WEIGHTS_FILE_PATH = os.path.abspath("nn_weights.h5")
+    WEIGHTS_FILE_PATH = os.path.abspath("weights/nn_weights.h5")
 
     EPISODES = 300
     EPISODE_LENGTH = 2 ** 8
