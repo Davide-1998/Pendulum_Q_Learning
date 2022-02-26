@@ -6,10 +6,9 @@ import tensorflow as tf
 # cannot find reference 'keras' in '__init__.py'
 from keras import layers
 import numpy as np
-from dpendulum import DPendulum
+from manipulator.dpendulum import DPendulum
 from buffer import ExperienceReplay
 from policy import EpsilonGreedy
-import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 
@@ -41,6 +40,7 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
         target_output = Q_target(next_states_batch, training=True)
         target_values = np.array(np.min(target_output, 1, keepdims=True))
+
         target_values[is_state_final_batch] = 0
         # Compute 1-step targets for the critic loss
         y = costs_batch + discount_factor * target_values
@@ -75,11 +75,17 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
 if __name__ == "__main__":
 
+    #####################################
+    # Hyper-parameters
+    #####################################
+
     NUMBER_OF_JOINTS = 1
+    # the number of quantization levels for controls should be an odd number
+    QUANTIZATION_LEVELS = 15
 
     WEIGHTS_FILE_PATH = os.path.abspath("weights/nn_weights.h5")
 
-    EPISODES = 300
+    EPISODES = 500
     EPISODE_LENGTH = 2 ** 8
 
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
@@ -103,7 +109,9 @@ if __name__ == "__main__":
 
     LEARNING_RATE = 0.0001
 
-    pendulum = DPendulum(joints=NUMBER_OF_JOINTS)
+    #####################################
+
+    pendulum = DPendulum(joints=NUMBER_OF_JOINTS, nu=QUANTIZATION_LEVELS)
     target_update = 0
     gradients_update = 0
     action_selection = 0

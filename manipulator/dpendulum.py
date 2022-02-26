@@ -1,4 +1,4 @@
-from pendulum import Pendulum
+from .pendulum import Pendulum
 import numpy as np
 
 
@@ -6,7 +6,7 @@ class DPendulum:
     """ Discrete Pendulum environment. Joint angle, velocity and torque are
         discretized
         with the specified steps. Joint velocity and torque are saturated.
-        Guassian noise can be added in the dynamics.
+        Gaussian noise can be added in the dynamics.
         Cost is -1 if the goal state has been reached, zero otherwise.
     """
 
