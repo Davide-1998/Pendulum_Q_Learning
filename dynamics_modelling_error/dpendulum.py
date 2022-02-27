@@ -66,3 +66,6 @@ class DPendulum:
         u = self.d2cu(iu)
         xc, cost = self.pendulum.dynamics(x, u)
         return xc.copy(), cost
+
+    def changeB(self, b):
+        self.pendulum.coefficient = b
