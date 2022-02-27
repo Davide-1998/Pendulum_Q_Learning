@@ -15,7 +15,7 @@ if __name__ == "__main__":
     pendulum = DPendulum()
 
     print("starting to test with almost down position")
-    for i in np.linspace(1., 0.1, 5):
+    for i in np.linspace(1., 0.1, 10):
         b = i
         print(f"Testing with b = {b}")
         pendulum.changeB(b)
