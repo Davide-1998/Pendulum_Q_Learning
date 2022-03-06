@@ -76,10 +76,14 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
     return Q_loss
 
 
-def test_network(robot, Q, pi, initial_state=None, episode_length=256):
+def test_network(robot, Q, pi, initial_state=None, episode_length=256,
+                 record_namefile='', record_folder=os.getcwd()):
     robot.reset(initial_state)
     episode_cost = 0
     discount_factor = 1
+    robot.pendulum.record_pendulum(custom_namefile=record_namefile,
+                                   movie_dir=record_folder)
+
     for _ in range(episode_length):
         state = robot.x.copy()
         control = pi.optimal(state, Q)
@@ -87,10 +91,18 @@ def test_network(robot, Q, pi, initial_state=None, episode_length=256):
         episode_cost += discount_factor * step_cost
         discount_factor *= DISCOUNT_FACTOR
         robot.render()
+
+    robot.pendulum.end_record(record_namefile, record_folder)
     return episode_cost
 
 
 if __name__ == "__main__":
+
+    #####################################
+    # Custom global parameters
+    #####################################
+
+    MOVIE_DIR = os.getcwd() + os.sep + 'Movie'
 
     #####################################
     # Hyper-parameters
@@ -101,10 +113,11 @@ if __name__ == "__main__":
     QUANTIZATION_LEVELS = 15
 
     BEST_WEIGHTS_FILE_PATH = os.path.abspath("weights/best_network_weights.h5")
-    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath("weights/last_network_weights.h5")
+    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(
+        "weights/last_network_weights.h5")
 
-    EPISODES = 500
-    EPISODE_LENGTH = 2 ** 8
+    EPISODES = 1 # 500
+    EPISODE_LENGTH = 1 # 2 ** 8
 
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
     BATCH_SIZE = 2 ** 6
@@ -157,7 +170,8 @@ if __name__ == "__main__":
     data = {}
 
     # filling the experience replay buffer
-    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH, pendulum, policy, Q_network, 2)
+    buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH,
+                pendulum, policy, Q_network, 2)
 
     average_cost_to_go = 0
     best_average_cost_to_go = np.Inf
@@ -200,7 +214,8 @@ if __name__ == "__main__":
                     batch = buffer.sample(BATCH_SIZE)
                     x_batch = np.array([b[0] for b in batch])
                     u_batch = np.array([b[1] for b in batch])
-                    cost_batch = np.array([b[2] for b in batch]).reshape((-1,1))
+                    cost_batch = np.array([b[2]
+                                          for b in batch]).reshape((-1, 1))
                     x_next_batch = np.array([b[3] for b in batch])
                     is_final_batch = [b[4] for b in batch]
 
@@ -225,7 +240,8 @@ if __name__ == "__main__":
         if save_network > SAVE_NETWORK_THRESHOLD:
             average_cost_to_go /= SAVE_NETWORK_THRESHOLD
             if average_cost_to_go < best_average_cost_to_go:
-                print(f"Saving network with {average_cost_to_go} average cost to go")
+                print("Saving network with {} average cost to go"
+                      .format(average_cost_to_go))
                 Q_network.save_weights(BEST_WEIGHTS_FILE_PATH)
                 best_average_cost_to_go = average_cost_to_go
             average_cost_to_go = 0
@@ -244,31 +260,45 @@ if __name__ == "__main__":
     test_episodes = 3
 
     Q_network.load_weights(TRAINED_WEIGHTS_FILE_PATH)
-    print(f"Testing of the network after the last episode from {test_episodes} random starting positions")
-    for _ in range(3):
-        test_network(pendulum, Q_network, policy)
+    print("Testing of the network after the last episode"
+          " from {} random starting positions".format(test_episodes))
+    for i in range(3):
+        test_network(pendulum, Q_network, policy,
+                     record_namefile='Last_episode_%d' % i,
+                     record_folder=MOVIE_DIR)
 
-    print(f"Testing of the network after the last episode {test_episodes} times from down position")
-    for _ in range(3):
+    '''
+    print("Testing of the network after the last"
+          " episode {} times from down position".format(test_episodes))
+    for i in range(3):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
         # no randomness to velocity
         q = np.pi + np.random.rand(nq)*(0.2-(-0.2))+(-0.2)
         v = np.zeros(nq)
         state = np.hstack([q, v])
-        test_network(pendulum, Q_network, policy, state)
+        test_network(pendulum, Q_network, policy, state,
+                     record_namefile='Last_episode_down_%d' % i,
+                     record_folder=MOVIE_DIR)
 
     Q_network.load_weights(BEST_WEIGHTS_FILE_PATH)
-    print(f"Testing of the best network from {test_episodes} random starting positions")
-    for _ in range(3):
-        test_network(pendulum, Q_network, policy)
+    print("Testing of the best network from"
+          " {} random starting positions".format(test_episodes))
+    for i in range(3):
+        test_network(pendulum, Q_network, policy,
+                     record_namefile='Last_episode_random_%d' % i,
+                     record_folder=MOVIE_DIR)
 
-    print(f"Testing of the best network {test_episodes} times from down position")
-    for _ in range(3):
+    print("Testing of the best network"
+          " {} times from down position".format(test_episodes))
+    for i in range(3):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
         # no randomness to velocity
         q = np.pi + np.random.rand(nq) * (0.2 - (-0.2)) + (-0.2)
         v = np.zeros(nq)
         state = np.hstack([q, v])
-        test_network(pendulum, Q_network, policy, state)
+        test_network(pendulum, Q_network, policy, state,
+                     record_namefile='Best_network_%d' % i,
+                     record_folder=MOVIE_DIR)
+    '''

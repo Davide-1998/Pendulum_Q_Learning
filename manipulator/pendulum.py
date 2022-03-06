@@ -16,6 +16,8 @@ import pinocchio as pin
 from .display import Display
 from numpy.linalg import inv
 import time
+import os
+import subprocess
 
 
 class Visual:
@@ -70,7 +72,32 @@ class Pendulum:
         # If true, state is [cos(q),sin(q),qdot], else [q,qdot]
         self.withSinCos = False
 
-    def createPendulum(self, nbJoint, rootId=0, prefix='', jointPlacement=None):
+    def record_pendulum(self, custom_namefile='', movie_dir=os.getcwd()):
+        print('Start robot recording')
+        windowID = self.viewer.viewer.gui.getWindowList()[0]
+        nameFile = movie_dir + os.sep + custom_namefile + \
+            'pendulum_%d_joints' % self.model.njoints
+        if not os.path.isdir(movie_dir):
+            os.mkdir(movie_dir, 0o777)
+            print('Created folder {}'.format(movie_dir))
+        self.viewer.viewer.gui.startCapture(windowID, nameFile, 'png')
+
+    def end_record(self, nameFile, movie_dir):
+        windowID = self.viewer.viewer.gui.getWindowList()[0]
+        self.viewer.viewer.gui.stopCapture(windowID)
+        print('Ended robot recording')
+        dest_file = movie_dir + os.sep + nameFile
+
+        # Generate videos
+        subprocess.run(['convert', '{}*'.format(dest_file),
+                        '{}.mp4'.format(dest_file)])
+        # Clean up images
+        for el in os.listdir(movie_dir):
+            if '.png' in el:
+                subprocess.run(['rm', '{}/{}'.format(movie_dir, el)])
+
+    def createPendulum(self, nbJoint, rootId=0, prefix='',
+                       jointPlacement=None):
         color = [red, green, blue, transparency] = [1, 1, 0.78, 1.0]
         colorred = [1.0, 0.0, 0.0, 1.0]
 
