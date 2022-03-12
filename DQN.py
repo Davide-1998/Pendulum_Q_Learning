@@ -7,7 +7,7 @@ import tensorflow as tf
 from keras import layers
 import numpy as np
 from orca.orca import init
-
+import json
 from manipulator.dpendulum import DPendulum
 from buffer import ExperienceReplay
 from policy import EpsilonGreedy
@@ -58,7 +58,12 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
             u_b = np.ndarray.flatten(controls_batch)
 
         Q_values = Q_outputs[selection, u_b]
-        batch_Q_values = np.reshape(Q_values, (-1, 1))
+        batch_Q_values = np.reshape(Q_values, (-1, 1))  # 64x1
+        # print('Q_Value Shape', batch_Q_values.shape)
+        # print('States Shape', states_batch.shape)  # 64x4
+
+        # print('Next States Shape', next_states_batch.shape)  # 64x4
+
         # Critic's loss function. tf.math.reduce_mean() computes the mean of
         # elements across dimensions of a tensor
         Q_loss = tf.math.reduce_mean(tf.math.square(y - batch_Q_values))
@@ -72,7 +77,6 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
     # Update the critic back propagating the gradients
     optimizer.apply_gradients(zip(Capped_Q_grad, Q.trainable_variables))
-
     return Q_loss
 
 
@@ -80,6 +84,7 @@ def test_network(robot, Q, pi, initial_state=None, episode_length=256,
                  record_namefile='', record_folder=os.getcwd()):
     robot.reset(initial_state)
     episode_cost = 0
+    episode_cost_history = []
     discount_factor = 1
     robot.pendulum.record_pendulum(custom_namefile=record_namefile,
                                    movie_dir=record_folder)
@@ -89,11 +94,12 @@ def test_network(robot, Q, pi, initial_state=None, episode_length=256,
         control = pi.optimal(state, Q)
         next_state, step_cost = robot.step(control)
         episode_cost += discount_factor * step_cost
+        episode_cost_history.append(episode_cost)
         discount_factor *= DISCOUNT_FACTOR
         robot.render()
 
     robot.pendulum.end_record(record_namefile, record_folder)
-    return episode_cost
+    return episode_cost, episode_cost_history
 
 
 if __name__ == "__main__":
@@ -116,8 +122,8 @@ if __name__ == "__main__":
     TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(
         "weights/last_network_weights.h5")
 
-    EPISODES = 1 # 500
-    EPISODE_LENGTH = 1 # 2 ** 8
+    EPISODES = 500
+    EPISODE_LENGTH = 2 ** 8
 
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
     BATCH_SIZE = 2 ** 6
@@ -182,7 +188,7 @@ if __name__ == "__main__":
         x = pendulum.reset()
         u = pendulum.c2du(np.zeros(pendulum.nq))
 
-        data[e] = {'loss': [], 'x': [], 'next_x': []}
+        data[e] = {}
         cost_to_go = 0
         discount = 1
 
@@ -206,8 +212,9 @@ if __name__ == "__main__":
                 buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x,
                                       is_final=final)
 
-                data[e]['x'].append(x[0].copy())
-                data[e]['next_x'].append(next_x[0].copy())
+                # data[e]['x'].append(x.copy())
+                # data[e]['next_x'].append(next_x.copy())
+                # data[e]['cost_to_go'].append(cost_to_go.copy())
 
                 gradients_update += 1
                 if gradients_update > GRADIENT_DESCENT_THRESHOLD:
@@ -222,8 +229,12 @@ if __name__ == "__main__":
                     _loss = update(x_batch, u_batch, cost_batch, x_next_batch,
                                    is_final_batch, Q_network_target, Q_network,
                                    critic_optimizer, DISCOUNT_FACTOR, nu)
+                    _loss = _loss.tolist()
                     gradients_update = 1
-                    data[e]['loss'].append(_loss)  # Takes the float value
+                    if isinstance(_loss, float):
+                        data[e]['loss'] = _loss
+                    else:
+                        data[e]['loss'] = sum(_loss)/len(_loss)  # Avg loss
 
                 target_update += 1
                 if target_update > TARGET_UPDATE_THRESHOLD:
@@ -262,43 +273,58 @@ if __name__ == "__main__":
     Q_network.load_weights(TRAINED_WEIGHTS_FILE_PATH)
     print("Testing of the network after the last episode"
           " from {} random starting positions".format(test_episodes))
-    for i in range(3):
-        test_network(pendulum, Q_network, policy,
-                     record_namefile='Last_episode_%d' % i,
-                     record_folder=MOVIE_DIR)
+    data['loss_last_ep_random_pos'] = {}
+    for i in range(test_episodes):
+        cost = test_network(pendulum, Q_network, policy,
+                            record_namefile='Last_episode_random_%d' % i,
+                            record_folder=MOVIE_DIR)
+        data['loss_last_ep_random_pos'][i] = cost[1]
 
-    '''
     print("Testing of the network after the last"
           " episode {} times from down position".format(test_episodes))
-    for i in range(3):
+    data['loss_last_ep_down_pos'] = {}
+    for i in range(test_episodes):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
         # no randomness to velocity
         q = np.pi + np.random.rand(nq)*(0.2-(-0.2))+(-0.2)
         v = np.zeros(nq)
         state = np.hstack([q, v])
-        test_network(pendulum, Q_network, policy, state,
-                     record_namefile='Last_episode_down_%d' % i,
-                     record_folder=MOVIE_DIR)
+        cost = test_network(pendulum, Q_network, policy, state,
+                            record_namefile='Last_episode_down_%d' % i,
+                            record_folder=MOVIE_DIR)
+        data['loss_last_ep_down_pos'][i] = cost[1]
 
     Q_network.load_weights(BEST_WEIGHTS_FILE_PATH)
     print("Testing of the best network from"
           " {} random starting positions".format(test_episodes))
-    for i in range(3):
-        test_network(pendulum, Q_network, policy,
-                     record_namefile='Last_episode_random_%d' % i,
-                     record_folder=MOVIE_DIR)
+    data['loss_best_net_random_pos'] = {}
+    for i in range(test_episodes):
+        cost = test_network(pendulum, Q_network, policy,
+                            record_namefile='Best_network_random_%d' % i,
+                            record_folder=MOVIE_DIR)
+        data['loss_best_net_random_pos'][i] = cost[1]
 
     print("Testing of the best network"
           " {} times from down position".format(test_episodes))
-    for i in range(3):
+    data['loss_best_net_down_pos'] = {}
+    for i in range(test_episodes):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
         # no randomness to velocity
         q = np.pi + np.random.rand(nq) * (0.2 - (-0.2)) + (-0.2)
         v = np.zeros(nq)
         state = np.hstack([q, v])
-        test_network(pendulum, Q_network, policy, state,
-                     record_namefile='Best_network_%d' % i,
-                     record_folder=MOVIE_DIR)
-    '''
+        cost = test_network(pendulum, Q_network, policy, state,
+                            record_namefile='Best_network_down_%d' % i,
+                            record_folder=MOVIE_DIR)
+        data['loss_best_net_down_pos'][i] = cost[1]
+
+    # Saving results locally
+    fileName = os.getcwd() + os.sep + \
+               'Results_{}_joints_{}_ep_{}_len.json'.format(NUMBER_OF_JOINTS,
+                                                            EPISODES,
+                                                            EPISODE_LENGTH)
+    io_out = open(fileName, 'w')
+    json.dump(data, io_out, indent=4)
+    io_out.close()
