@@ -41,7 +41,7 @@ def plot_episodes_loss(num_ep, len_ep, searchDir=os.getcwd()):
     ller_ax.set_ylabel('Loss', fontsize=18)
     ller_ax.set_title('Loss last episode with random position', fontsize=24)
     for key, vals in data['loss_last_ep_random_pos'].items():
-        ller_ax.plot(vals)
+        ller_ax.plot(vals, linewidth=4)
     loss_last_ep_random.legend(range(1, 4))
     loss_last_ep_random.savefig(plot_dir + os.sep +
                                 'loss_last_ep_random_positions.png', dpi=200)
@@ -53,7 +53,7 @@ def plot_episodes_loss(num_ep, len_ep, searchDir=os.getcwd()):
     lled_ax.set_ylabel('Loss', fontsize=18)
     lled_ax.set_title('Loss last episode with down position', fontsize=24)
     for key, vals in data['loss_last_ep_down_pos'].items():
-        lled_ax.plot(vals)
+        lled_ax.plot(vals, linewidth=4)
     loss_last_ep_down.legend(range(1, 4))
     loss_last_ep_down.savefig(plot_dir + os.sep +
                               'loss_last_ep_down_positions.png', dpi=200)
@@ -65,7 +65,7 @@ def plot_episodes_loss(num_ep, len_ep, searchDir=os.getcwd()):
     bnr_ax.set_ylabel('Loss', fontsize=18)
     bnr_ax.set_title('Loss best network with random position', fontsize=24)
     for key, vals in data['loss_best_net_random_pos'].items():
-        bnr_ax.plot(vals)
+        bnr_ax.plot(vals, linewidth=4)
     best_net_random.legend(range(1, 4))
     best_net_random.savefig(plot_dir + os.sep +
                             'loss_best_net_random_positions.png', dpi=200)
@@ -77,7 +77,7 @@ def plot_episodes_loss(num_ep, len_ep, searchDir=os.getcwd()):
     bnd_ax.set_ylabel('Loss', fontsize=18)
     bnd_ax.set_title('Loss best network with down position', fontsize=24)
     for key, vals in data['loss_best_net_down_pos'].items():
-        bnd_ax.plot(vals)
+        bnd_ax.plot(vals, linewidth=4)
     best_net_down.legend(range(1, 4))
     best_net_down.savefig(plot_dir + os.sep +
                           'loss_best_net_down_positions.png', dpi=200)
