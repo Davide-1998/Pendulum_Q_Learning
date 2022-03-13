@@ -11,7 +11,7 @@ import json
 from manipulator.dpendulum import DPendulum
 from buffer import ExperienceReplay
 from policy import EpsilonGreedy
-
+from time import time
 from tqdm import tqdm
 
 from tensorflow.python.ops.numpy_ops import np_config
@@ -198,6 +198,7 @@ if __name__ == "__main__":
 
         with tqdm(total=EPISODE_LENGTH) as pbar:
             pbar.set_description('Episode %d' % (e + 1))
+            start_time = time()
             for i in range(EPISODE_LENGTH):
 
                 x = pendulum.x.copy()
@@ -239,6 +240,7 @@ if __name__ == "__main__":
                         data[e]['loss'] = _loss
                     else:
                         data[e]['loss'] = sum(_loss)/len(_loss)  # Avg loss
+                    data[e]['time'] = start_time - time()
 
                 target_update += 1
                 if target_update > TARGET_UPDATE_THRESHOLD:
@@ -271,7 +273,7 @@ if __name__ == "__main__":
         policy.epsilon = EPSILON
         print("")
 
-    # test last trained networks
+    # test last trained networks ##############################
     test_episodes = 3
 
     Q_network.load_weights(TRAINED_WEIGHTS_FILE_PATH)
