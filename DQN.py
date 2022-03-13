@@ -81,13 +81,16 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
 
 def test_network(robot, Q, pi, initial_state=None, episode_length=256,
+                 makeMovie=True,
                  record_namefile='', record_folder=os.getcwd()):
     robot.reset(initial_state)
     episode_cost = 0
     episode_cost_history = []
     discount_factor = 1
-    robot.pendulum.record_pendulum(custom_namefile=record_namefile,
-                                   movie_dir=record_folder)
+
+    if makeMovie:
+        robot.pendulum.record_pendulum(custom_namefile=record_namefile,
+                                       movie_dir=record_folder)
 
     for _ in range(episode_length):
         state = robot.x.copy()
@@ -98,7 +101,8 @@ def test_network(robot, Q, pi, initial_state=None, episode_length=256,
         discount_factor *= DISCOUNT_FACTOR
         robot.render()
 
-    robot.pendulum.end_record(record_namefile, record_folder)
+    if makeMovie:
+        robot.pendulum.end_record(record_namefile, record_folder)
     return episode_cost, episode_cost_history
 
 
