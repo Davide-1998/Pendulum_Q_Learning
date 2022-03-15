@@ -81,7 +81,7 @@ def update(states_batch, controls_batch, costs_batch, next_states_batch,
 
 
 def test_network(robot, Q, pi, initial_state=None, episode_length=256,
-                 makeMovie=True,
+                 makeMovie=False,
                  record_namefile='', record_folder=os.getcwd()):
     robot.reset(initial_state)
     episode_cost = 0
@@ -113,6 +113,11 @@ if __name__ == "__main__":
     #####################################
 
     MOVIE_DIR = os.getcwd() + os.sep + 'Movie'
+    JSON_DIR = os.getcwd() + os.sep + 'Collected_Data'
+
+    BEST_WEIGHTS_FILE_PATH = os.path.abspath("weights/best_network_weights.h5")
+    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(
+        "weights/last_network_weights.h5")
 
     #####################################
     # Hyper-parameters
@@ -121,10 +126,6 @@ if __name__ == "__main__":
     NUMBER_OF_JOINTS = 2
     # the number of quantization levels for controls should be an odd number
     QUANTIZATION_LEVELS = 15
-
-    BEST_WEIGHTS_FILE_PATH = os.path.abspath("weights/best_network_weights.h5")
-    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(
-        "weights/last_network_weights.h5")
 
     EPISODES = 500
     EPISODE_LENGTH = 2 ** 8
@@ -137,7 +138,7 @@ if __name__ == "__main__":
     EPSILON = 1
     EPSILON_MAX = 1
     EPSILON_MIN = 0.01
-    EPSILON_DECAY = - 0.011 * 500
+    EPSILON_DECAY = - 0.011 * 500  # EPISODES
     # the target network is updated every N gradient descent
     TARGET_UPDATE_THRESHOLD = 2 ** 6
     # the number of steps to execute between each gradient descent
@@ -217,10 +218,6 @@ if __name__ == "__main__":
                 buffer.add_transition(x=x, u=u, cost=cost, next_x=next_x,
                                       is_final=final)
 
-                # data[e]['x'].append(x.copy())
-                # data[e]['next_x'].append(next_x.copy())
-                # data[e]['cost_to_go'].append(cost_to_go.copy())
-
                 gradients_update += 1
                 if gradients_update > GRADIENT_DESCENT_THRESHOLD:
                     batch = buffer.sample(BATCH_SIZE)
@@ -240,7 +237,7 @@ if __name__ == "__main__":
                         data[e]['loss'] = _loss
                     else:
                         data[e]['loss'] = sum(_loss)/len(_loss)  # Avg loss
-                    data[e]['time'] = start_time - time()
+                    data[e]['time'] = time() - start_time
 
                 target_update += 1
                 if target_update > TARGET_UPDATE_THRESHOLD:
@@ -268,10 +265,10 @@ if __name__ == "__main__":
             Q_network.save_weights(TRAINED_WEIGHTS_FILE_PATH)
 
         proportion = e / EPISODES
+        data[e]['epsilon'] = EPSILON  # Save to data
         EPSILON = max(EPSILON_MIN, np.exp(EPSILON_DECAY * proportion))
         print("Epsilon", EPSILON)
         policy.epsilon = EPSILON
-        print("")
 
     # test last trained networks ##############################
     test_episodes = 3
@@ -282,7 +279,8 @@ if __name__ == "__main__":
     data['loss_last_ep_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
-                            record_namefile='Last_episode_random_%d' % i,
+                            record_namefile='Last_episode_random_%d_%d'
+                            % (i, QUANTIZATION_LEVELS),
                             record_folder=MOVIE_DIR)
         data['loss_last_ep_random_pos'][i] = cost[1]
 
@@ -297,7 +295,8 @@ if __name__ == "__main__":
         v = np.zeros(nq)
         state = np.hstack([q, v])
         cost = test_network(pendulum, Q_network, policy, state,
-                            record_namefile='Last_episode_down_%d' % i,
+                            record_namefile='Last_episode_down_%d_%de'
+                            % (i, test_episodes),
                             record_folder=MOVIE_DIR)
         data['loss_last_ep_down_pos'][i] = cost[1]
 
@@ -307,7 +306,8 @@ if __name__ == "__main__":
     data['loss_best_net_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
-                            record_namefile='Best_network_random_%d' % i,
+                            record_namefile='Best_network_random_%d_%d'
+                            % (i, test_episodes),
                             record_folder=MOVIE_DIR)
         data['loss_best_net_random_pos'][i] = cost[1]
 
@@ -322,15 +322,21 @@ if __name__ == "__main__":
         v = np.zeros(nq)
         state = np.hstack([q, v])
         cost = test_network(pendulum, Q_network, policy, state,
-                            record_namefile='Best_network_down_%d' % i,
+                            record_namefile='Best_network_down_%d_%de'
+                            % (i, test_episodes),
                             record_folder=MOVIE_DIR)
         data['loss_best_net_down_pos'][i] = cost[1]
 
     # Saving results locally
-    fileName = os.getcwd() + os.sep + \
-               'Results_{}_joints_{}_ep_{}_len.json'.format(NUMBER_OF_JOINTS,
+    fileName = JSON_DIR + os.sep + \
+               'Results_{}_joints_{}_ep_{}_len_{}_res.json'.format(
+                                                            NUMBER_OF_JOINTS,
                                                             EPISODES,
-                                                            EPISODE_LENGTH)
+                                                            EPISODE_LENGTH,
+                                                            QUANTIZATION_LEVELS
+                                                            )
+    if not os.path.isdir(JSON_DIR):
+        os.mkdir(JSON_DIR, 0o777)
     io_out = open(fileName, 'w')
     json.dump(data, io_out, indent=4)
     io_out.close()
