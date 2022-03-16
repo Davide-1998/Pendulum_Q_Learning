@@ -26,12 +26,13 @@
 
 \section{Abstract}
 The third assignment revolved around the task to implement a deep Q-Learning
-network able to proficiently tackle the task to balance a pendulum.
-The environment in which the network works is a continuous one and it had at
-its disposal only the discrete set of controls available for the pendulum and
-the cost returned by the environment when an action is performed.
-The solution proposed shows good results both in terms of cost and final
-position.
+algorithm able to proficiently tackle the task to balance a pendulum.
+This work focuses on the adaptation of the work in \cite{Mnih} to a simpler
+environment, along with many suggestion from [IMPLEMENTING Q-NETWORK] for
+implementing the details.
+The resulting deep neural network is able to accurately estimate the Q-function
+of the pendulum, and along with a greedy policy it produces episodes with
+low cost, managing to balance the pendulum starting from any state.
 
 \section{Introduction}
 Working with automated agents in a continuous environment is a particulary
