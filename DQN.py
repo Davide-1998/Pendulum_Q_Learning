@@ -138,7 +138,7 @@ if __name__ == "__main__":
     EPSILON = 1
     EPSILON_MAX = 1
     EPSILON_MIN = 0.01
-    EPSILON_DECAY = - 0.011 * EPISODES
+    EPSILON_DECAY = -1 * (np.log(EPSILON_MIN) / (0.75 * EPISODES)) #- 0.011 * EPISODES
     # the target network is updated every N gradient descent
     TARGET_UPDATE_THRESHOLD = 2 ** 6
     # the number of steps to execute between each gradient descent
@@ -265,9 +265,9 @@ if __name__ == "__main__":
         if e == EPISODES - 1:
             Q_network.save_weights(TRAINED_WEIGHTS_FILE_PATH)
 
-        proportion = e / EPISODES
+        # proportion = e / EPISODES
         data['epsilon'].append(EPSILON)  # Save to data
-        EPSILON = max(EPSILON_MIN, np.exp(EPSILON_DECAY * proportion))
+        EPSILON = max(EPSILON_MIN, np.exp(-EPSILON_DECAY * e))  # proportion))
         print("Epsilon", EPSILON)
         policy.epsilon = EPSILON
 
