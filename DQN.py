@@ -127,7 +127,7 @@ if __name__ == "__main__":
     # the number of quantization levels for controls should be an odd number
     QUANTIZATION_LEVELS = 15
 
-    EPISODES = 500
+    EPISODES = 1000
     EPISODE_LENGTH = 2 ** 8
 
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     EPSILON = 1
     EPSILON_MAX = 1
     EPSILON_MIN = 0.01
-    EPSILON_DECAY = - 0.011 * 500  # EPISODES
+    EPSILON_DECAY = - 0.011 * EPISODES
     # the target network is updated every N gradient descent
     TARGET_UPDATE_THRESHOLD = 2 ** 6
     # the number of steps to execute between each gradient descent
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     # Set optimizer specifying the learning rates
     critic_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
 
-    data = {}
+    data = {'training_loss': [], 'training_time': [], 'epsilon': []}
 
     # filling the experience replay buffer
     buffer.fill(NO_OP_THRESHOLD, EPISODE_LENGTH,
@@ -192,11 +192,10 @@ if __name__ == "__main__":
     for e in range(EPISODES):
         x = pendulum.reset()
         u = pendulum.c2du(np.zeros(pendulum.nq))
-
-        data[e] = {}
         cost_to_go = 0
         discount = 1
 
+        avg_loss = []
         with tqdm(total=EPISODE_LENGTH) as pbar:
             pbar.set_description('Episode %d' % (e + 1))
             start_time = time()
@@ -234,10 +233,10 @@ if __name__ == "__main__":
                     _loss = _loss.tolist()
                     gradients_update = 1
                     if isinstance(_loss, float):
-                        data[e]['loss'] = _loss
+                        avg_loss.append(_loss)
                     else:
-                        data[e]['loss'] = sum(_loss)/len(_loss)  # Avg loss
-                    data[e]['time'] = time() - start_time
+                        # Average loss
+                        avg_loss.append(sum(_loss)/len(_loss))
 
                 target_update += 1
                 if target_update > TARGET_UPDATE_THRESHOLD:
@@ -247,6 +246,8 @@ if __name__ == "__main__":
                 pbar.update(1)
 
             pbar.close()
+        data['training_loss'].append(sum(avg_loss)/len(avg_loss))
+        data['training_time'].append(time() - start_time)
 
         print("Cost to go:", cost_to_go)
         save_network += 1
@@ -265,7 +266,7 @@ if __name__ == "__main__":
             Q_network.save_weights(TRAINED_WEIGHTS_FILE_PATH)
 
         proportion = e / EPISODES
-        data[e]['epsilon'] = EPSILON  # Save to data
+        data['epsilon'].append(EPSILON)  # Save to data
         EPSILON = max(EPSILON_MIN, np.exp(EPSILON_DECAY * proportion))
         print("Epsilon", EPSILON)
         policy.epsilon = EPSILON
