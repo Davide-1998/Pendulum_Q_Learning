@@ -329,7 +329,7 @@ if __name__ == "__main__":
     EXPERIENCE_REPLAY_SIZE = 2 ** 16
     BATCH_SIZE = 2 ** 6
     NO_OP_THRESHOLD = 2 ** 14
-    DISCOUNT_FACTOR = 0.95
+    DISCOUNT_FACTOR = 0.99
 
     EPSILON = 1
     EPSILON_MAX = 1
