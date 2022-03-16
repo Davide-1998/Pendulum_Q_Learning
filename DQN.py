@@ -17,6 +17,7 @@ from tqdm import tqdm
 from tensorflow.python.ops.numpy_ops import np_config
 
 np_config.enable_numpy_behavior()
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 def get_critic(state_cardinality, possible_actions):
@@ -316,10 +317,6 @@ if __name__ == "__main__":
     MOVIE_DIR = os.getcwd() + os.sep + 'Movie'
     JSON_DIR = os.getcwd() + os.sep + 'Collected_Data'
 
-    BEST_WEIGHTS_FILE_PATH = os.path.abspath("weights/best_network_weights.h5")
-    TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(
-        "weights/last_network_weights.h5")
-
     #####################################
     # Hyper-parameters                  #
     #####################################
@@ -353,39 +350,58 @@ if __name__ == "__main__":
     LEARNING_RATE = 0.0001
 
     ###########################################################################
+    for NUMBER_OF_JOINTS in [1, 2, 5]:
+        for EPISODES in [500, 1000, 1500]:
 
-    # Setup and training of the system
-    training_env, data = training(NUMBER_OF_JOINTS, QUANTIZATION_LEVELS,
-                                  EPISODES, EPISODE_LENGTH,
-                                  EXPERIENCE_REPLAY_SIZE,
-                                  BATCH_SIZE, NO_OP_THRESHOLD, DISCOUNT_FACTOR,
-                                  EPSILON, EPSILON_MAX, EPSILON_MIN,
-                                  EPSILON_DECAY, TARGET_UPDATE_THRESHOLD,
-                                  GRADIENT_DESCENT_THRESHOLD,
-                                  ACTION_SELECTION_THRESHOLD,
-                                  SAVE_NETWORK_THRESHOLD, LEARNING_RATE,
-                                  BEST_WEIGHTS_FILE_PATH,
-                                  TRAINED_WEIGHTS_FILE_PATH)
+            #####################################
+            # Secondary custom global parameters#
+            ###################################################################
+            descriptor = '%d_joints_' % NUMBER_OF_JOINTS + \
+                         '%d_res_' % QUANTIZATION_LEVELS + \
+                         '%d_ep_' % EPISODES + '%d_len' % EPISODE_LENGTH + \
+                         '.h5'
 
-    # Test of system ##########################################################
-    test_results = test(3, training_env['Q_network'], training_env['policy'],
-                        training_env['robot'], TRAINED_WEIGHTS_FILE_PATH,
-                        BEST_WEIGHTS_FILE_PATH, MOVIE_DIR)
+            best_weigths_path = "weights/best_network_weights_" + descriptor
+            BEST_WEIGHTS_FILE_PATH = os.path.abspath(best_weigths_path)
 
-    # Concatenate results #####################################################
-    data.update(test_results)
+            trained_weights_path = "weights/last_network_weights_" + descriptor
+            TRAINED_WEIGHTS_FILE_PATH = os.path.abspath(trained_weights_path)
+            ###################################################################
 
-    # Save results locally ####################################################
-    if not os.path.isdir(JSON_DIR):
-        os.mkdir(JSON_DIR, 0o777)
+            # Setup and training of the system
+            training_env, data = training(NUMBER_OF_JOINTS,
+                                          QUANTIZATION_LEVELS,
+                                          EPISODES, EPISODE_LENGTH,
+                                          EXPERIENCE_REPLAY_SIZE,
+                                          BATCH_SIZE, NO_OP_THRESHOLD,
+                                          DISCOUNT_FACTOR,
+                                          EPSILON, EPSILON_MAX, EPSILON_MIN,
+                                          EPSILON_DECAY,
+                                          TARGET_UPDATE_THRESHOLD,
+                                          GRADIENT_DESCENT_THRESHOLD,
+                                          ACTION_SELECTION_THRESHOLD,
+                                          SAVE_NETWORK_THRESHOLD,
+                                          LEARNING_RATE,
+                                          BEST_WEIGHTS_FILE_PATH,
+                                          TRAINED_WEIGHTS_FILE_PATH)
 
-    fileName = 'Results_{}_joints_{}_ep_{}_len_{}_res.json'.format(
-                                                            NUMBER_OF_JOINTS,
-                                                            EPISODES,
-                                                            EPISODE_LENGTH,
-                                                            QUANTIZATION_LEVELS
-                                                            )
-    filePath = JSON_DIR + os.sep + fileName
-    io_out = open(filePath, 'w')
-    json.dump(data, io_out, indent=4)
-    io_out.close()
+            # Test of system ##################################################
+            test_results = test(3, training_env['Q_network'],
+                                training_env['policy'], training_env['robot'],
+                                TRAINED_WEIGHTS_FILE_PATH,
+                                BEST_WEIGHTS_FILE_PATH, MOVIE_DIR)
+
+            # Concatenate results #############################################
+            data.update(test_results)
+
+            # Save results locally ############################################
+            if not os.path.isdir(JSON_DIR):
+                os.mkdir(JSON_DIR, 0o777)
+
+            fileName = 'Results_{}_joints_{}_ep_{}_len_{}_res.json' \
+                       .format(NUMBER_OF_JOINTS, EPISODES, EPISODE_LENGTH,
+                               QUANTIZATION_LEVELS)
+            filePath = JSON_DIR + os.sep + fileName
+            io_out = open(filePath, 'w')
+            json.dump(data, io_out, indent=4)
+            io_out.close()
