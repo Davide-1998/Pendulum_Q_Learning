@@ -246,14 +246,19 @@ def test(test_eps, Q_network, policy, pendulum,
     data = {}
     nq = pendulum.nq
 
+    movie_descriptor = ''
+    for key, val in {'ep': test_episodes, 'res': pendulum.nu,
+                     'joints': pendulum.pendulum.model.njoints}.items():
+        movie_descriptor += '{}_key'.format(val)
+
     Q_network.load_weights(last_ep_weights_dir)
     print("Testing of the network after the last episode"
           " from {} random starting positions".format(test_episodes))
     data['loss_last_ep_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
-                            record_namefile='Last_episode_random_%d_%dres'
-                            % (i, pendulum.nu),
+                            record_namefile='Last_episode_random_'
+                            + movie_descriptor,
                             record_folder=movie_dir)
         data['loss_last_ep_random_pos'][i] = cost[1]
 
@@ -268,8 +273,8 @@ def test(test_eps, Q_network, policy, pendulum,
         v = np.zeros(nq)
         state = np.hstack([q, v])
         cost = test_network(pendulum, Q_network, policy, state,
-                            record_namefile='Last_episode_down_%d_%dres'
-                            % (i, pendulum.nu),
+                            record_namefile='Last_episode_down_'
+                            + movie_descriptor,
                             record_folder=movie_dir)
         data['loss_last_ep_down_pos'][i] = cost[1]
 
@@ -279,8 +284,8 @@ def test(test_eps, Q_network, policy, pendulum,
     data['loss_best_net_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
-                            record_namefile='Best_network_random_%d_%dres'
-                            % (i, pendulum.nu),
+                            record_namefile='Best_network_random_'
+                            + movie_descriptor,
                             record_folder=movie_dir)
         data['loss_best_net_random_pos'][i] = cost[1]
 
@@ -295,8 +300,8 @@ def test(test_eps, Q_network, policy, pendulum,
         v = np.zeros(nq)
         state = np.hstack([q, v])
         cost = test_network(pendulum, Q_network, policy, state,
-                            record_namefile='Best_network_down_%d_%dres'
-                            % (i, pendulum.nu),
+                            record_namefile='Best_network_down_'
+                            + movie_descriptor,
                             record_folder=movie_dir)
         data['loss_best_net_down_pos'][i] = cost[1]
     return data
@@ -305,7 +310,7 @@ def test(test_eps, Q_network, policy, pendulum,
 if __name__ == "__main__":
 
     #####################################
-    # Custom global parameters
+    # Custom global parameters          #
     #####################################
 
     MOVIE_DIR = os.getcwd() + os.sep + 'Movie'
@@ -316,7 +321,7 @@ if __name__ == "__main__":
         "weights/last_network_weights.h5")
 
     #####################################
-    # Hyper-parameters
+    # Hyper-parameters                  #
     #####################################
 
     NUMBER_OF_JOINTS = 2
@@ -347,7 +352,7 @@ if __name__ == "__main__":
 
     LEARNING_RATE = 0.0001
 
-    #####################################
+    ###########################################################################
 
     # Setup and training of the system
     training_env, data = training(NUMBER_OF_JOINTS, QUANTIZATION_LEVELS,
@@ -362,25 +367,25 @@ if __name__ == "__main__":
                                   BEST_WEIGHTS_FILE_PATH,
                                   TRAINED_WEIGHTS_FILE_PATH)
 
-    # Test of system
+    # Test of system ##########################################################
     test_results = test(3, training_env['Q_network'], training_env['policy'],
                         training_env['robot'], TRAINED_WEIGHTS_FILE_PATH,
                         BEST_WEIGHTS_FILE_PATH, MOVIE_DIR)
 
-    # Concatenate results
+    # Concatenate results #####################################################
     data.update(test_results)
 
-    # Save results locally
+    # Save results locally ####################################################
     if not os.path.isdir(JSON_DIR):
         os.mkdir(JSON_DIR, 0o777)
 
-    fileName = JSON_DIR + os.sep + \
-               'Results_{}_joints_{}_ep_{}_len_{}_res.json'.format(
+    fileName = 'Results_{}_joints_{}_ep_{}_len_{}_res.json'.format(
                                                             NUMBER_OF_JOINTS,
                                                             EPISODES,
                                                             EPISODE_LENGTH,
                                                             QUANTIZATION_LEVELS
                                                             )
-    io_out = open(fileName, 'w')
+    filePath = JSON_DIR + os.sep + fileName
+    io_out = open(filePath, 'w')
     json.dump(data, io_out, indent=4)
     io_out.close()
