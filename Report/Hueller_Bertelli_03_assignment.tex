@@ -35,20 +35,17 @@ of the pendulum, and along with a greedy policy it produces episodes with
 low cost, managing to balance the pendulum starting from any state.
 
 \section{Introduction}
-Working with automated agents in a continuous environment is a particulary
-difficult task due to the amount of events that may happen. Specifically
-when an agent is exploited in an environment in which it is requested to
-make any action that changes it the complexity rises. To address this increasig
-complexity it has been made necessary to employ systems that were able to
-adapt to the environment independently by how many stimula they may receive.
-For this reason the deep neural networks have been introduced being highly
-non-linear and able to "understand" a continuous environment performing
-actions based on few inputs.
-In our case the environment is represented by a pendulum which, starting from
-any position, has to reach the uppermost position and keeps it resulting in a
-balanced system. Even though the environment is continuous the controls
-available for the pendulum are made discrete through a discretization step
-and so they vary in resulution.
+The pendulum is simulated having a continuous state space, which represents
+the position and velocity of its joint variables, and a discrete control
+space, which represents the joint torques requested by the controller.
+Given this circumstances it is not possible to execute traditional Q-learning
+and produce the Q-table necessary for estimating the Q-function, being the table
+incompatible with continuous state spaces.
+This is one of the reasons it might be preferable, if not required, to use
+V/Q-function approximation.
+In this work the Q-function has been approximated using a deep neural network,
+which forced to implement several new components into the training in order
+to ensure a good convergence.
 
 \section{Network}
 The network in use exploits a deep fully connected
