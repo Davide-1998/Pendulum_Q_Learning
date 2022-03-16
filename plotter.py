@@ -25,11 +25,12 @@ def plot_episodes_loss(data_array, key, n_joints, num_ep, len_ep, res_levels,
     fig.savefig(plot_dir + os.sep + save_name +
                           '_{}J_{}E_{}EL.png'
                           .format(n_joints, num_ep, len_ep), dpi=200)
+    plt.close()
 
 
 if __name__ == '__main__':
     NUM_J = [2]
-    NUM_EP = [500, 1000]
+    NUM_EP = [100, 500, 1000]
     LEN_EP = [256]
     RES_LVL = [15]
 
