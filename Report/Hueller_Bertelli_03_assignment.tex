@@ -48,17 +48,17 @@ which forced to implement several new components into the training in order
 to ensure a good convergence.
 
 \section{Network}
-The network in use exploits a deep fully connected
-architecture in which the input is the state of the pendulum, its position in
-radiants and its angular velocity, and the output is the predicted Q value for
-each possible control of the joints.
-The architecture has been inspired by the one proposed in \cite{Mnih}.
-Specifically the network is composed of 4 dense layers having respectively 16,
-32, 64 and 64 activation cells. The output of the network has dimension equal
-to the number of discrete controls at the power the number of joints.
-So, if we are working with a double pendulum with $n\_joints=2$ and a control
-resolution equal to $n\_controls=10$ the resulting output of the network will
-be $n\_controls^{n\_joints}=10^2=100$.
+The network in use is composed of several fully connected layers which receive
+as input the state of the pendulum, as mentioned before the position in
+radiants and the angular velocity of each joint.
+The last output layer produces the predicted Q value for each possible control
+of the joints in the specific state.
+Specifically the network is composed of: input layer, 4 dense hidden layers
+having respectively 16, 32, 64 and 64 activation cells, and the output layer
+having dimension equal to the number of discrete controls.
+The number of this control is equal to \(|U|=resolution^{\#joints}\), which
+means that as \(resolution=15\) and \(\#joints=2\), \(|U|=15^{2}=225\) .
+[RIFARE IMMAGINE]
 In Figure \ref{fig:Network} is shown a graphical representation of the network
 in use.
 
