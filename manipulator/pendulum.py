@@ -88,13 +88,14 @@ class Pendulum:
         print('Ended robot recording')
         dest_file = movie_dir + os.sep + nameFile
 
-        # Generate videos
+        # Generate videos  # Buggy
         subprocess.run(['convert', '{}*'.format(dest_file),
                         '{}.mp4'.format(dest_file)])
         # Clean up images
-        for el in os.listdir(movie_dir):
-            if '.png' in el:
-                subprocess.run(['rm', '{}/{}'.format(movie_dir, el)])
+        subprocess.run(['rm', '{}/*.png'.format(movie_dir)])
+
+        # Clean temporary folder of imageMagick
+        subprocess.run(['rm', '-rf', '/tmp/magick-*'])
 
     def createPendulum(self, nbJoint, rootId=0, prefix='',
                        jointPlacement=None):

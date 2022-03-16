@@ -12,13 +12,17 @@ class DPendulum:
 
     def __init__(self, nu=11, dt=0.2, ndt=1, noise_stddev=0, joints=1):
         self.pendulum = Pendulum(joints, noise_stddev)
+        windowID = self.pendulum.viewer.viewer.gui.getWindowList()[0]
+        custom_transform = [0.0, -7.55, 0.0, 0.707, 0.0, 0.0, 0.707]
+        self.pendulum.viewer.viewer.gui.setCameraTransform(windowID,
+                                                           custom_transform)
         self.pendulum.DT = dt
         self.pendulum.NDT = ndt
 
         self.nu = nu        # Number of discretization steps for joint torque
         self.uMax = self.pendulum.umax    # Max torque (u in [-umax,umax])
         self.dt = dt        # time step
-        self.DU = 2*self.uMax/self.nu # discretization resolution for joint torque
+        self.DU = 2*self.uMax/self.nu  # discretization resolution for joint torque
 
     @property
     def nq(self): return self.pendulum.nq
