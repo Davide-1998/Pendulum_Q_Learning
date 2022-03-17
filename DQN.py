@@ -17,7 +17,6 @@ from tqdm import tqdm
 from tensorflow.python.ops.numpy_ops import np_config
 
 np_config.enable_numpy_behavior()
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 def get_critic(state_cardinality, possible_actions):
@@ -255,17 +254,17 @@ def test(test_eps, Q_network, policy, pendulum,
     Q_network.load_weights(last_ep_weights_dir)
     print("Testing of the network after the last episode"
           " from {} random starting positions".format(test_episodes))
-    data['loss_last_ep_random_pos'] = {}
+    data['cost_last_ep_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
                             record_namefile='Last_episode_random_%d' % i
                             + movie_descriptor,
                             record_folder=movie_dir)
-        data['loss_last_ep_random_pos'][i] = cost[1]
+        data['cost_last_ep_random_pos'][i] = cost[1]
 
     print("Testing of the network after the last"
           " episode {} times from down position".format(test_episodes))
-    data['loss_last_ep_down_pos'] = {}
+    data['cost_last_ep_down_pos'] = {}
     for i in range(test_episodes):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
@@ -277,22 +276,22 @@ def test(test_eps, Q_network, policy, pendulum,
                             record_namefile='Last_episode_down_%d' % i
                             + movie_descriptor,
                             record_folder=movie_dir)
-        data['loss_last_ep_down_pos'][i] = cost[1]
+        data['cost_last_ep_down_pos'][i] = cost[1]
 
     Q_network.load_weights(best_net_weights_dir)
     print("Testing of the best network from"
           " {} random starting positions".format(test_episodes))
-    data['loss_best_net_random_pos'] = {}
+    data['cost_best_net_random_pos'] = {}
     for i in range(test_episodes):
         cost = test_network(pendulum, Q_network, policy,
                             record_namefile='Best_network_random_%d' % i
                             + movie_descriptor,
                             record_folder=movie_dir)
-        data['loss_best_net_random_pos'][i] = cost[1]
+        data['cost_best_net_random_pos'][i] = cost[1]
 
     print("Testing of the best network"
           " {} times from down position".format(test_episodes))
-    data['loss_best_net_down_pos'] = {}
+    data['cost_best_net_down_pos'] = {}
     for i in range(test_episodes):
         # a bit of randomness to the down position
         # q is in [pi-random,pi+random]
@@ -304,12 +303,11 @@ def test(test_eps, Q_network, policy, pendulum,
                             record_namefile='Best_network_down_%d' % i
                             + movie_descriptor,
                             record_folder=movie_dir)
-        data['loss_best_net_down_pos'][i] = cost[1]
+        data['cost_best_net_down_pos'][i] = cost[1]
     return data
 
 
 if __name__ == "__main__":
-
     #####################################
     # Custom global parameters          #
     #####################################
@@ -352,7 +350,7 @@ if __name__ == "__main__":
     ###########################################################################
     for QUANTIZATION_LEVELS in [11, 17]:
         for NUMBER_OF_JOINTS in [1, 2]:
-            for EPISODES in [500, 1000]:
+            for EPISODES in [500, 1300]:
                 EPSILON_DECAY = -1 * (np.log(EPSILON_MIN) / (0.75 * EPISODES))
 
                 #####################################
