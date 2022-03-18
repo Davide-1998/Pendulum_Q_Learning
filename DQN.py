@@ -247,8 +247,7 @@ def test(test_eps, Q_network, policy, pendulum,
     nq = pendulum.nq
 
     movie_descriptor = ''
-    for key, val in {'ep': test_episodes, 'res': pendulum.nu,
-                     'joints': pendulum.pendulum.model.njoints}.items():
+    for key, val in {'ep': test_episodes, 'res': pendulum.nu}.items():
         movie_descriptor += '_{}_{}'.format(val, key)
 
     Q_network.load_weights(last_ep_weights_dir)
@@ -313,6 +312,7 @@ if __name__ == "__main__":
     #####################################
 
     MOVIE_DIR = os.getcwd() + os.sep + 'Movie'
+    FRAME_DIR = os.getcwd() + os.sep + 'Frames'
     JSON_DIR = os.getcwd() + os.sep + 'Collected_Data'
 
     #####################################
@@ -348,8 +348,8 @@ if __name__ == "__main__":
     LEARNING_RATE = 0.0001
 
     ###########################################################################
-    for QUANTIZATION_LEVELS in [11, 17]:
-        for NUMBER_OF_JOINTS in [1, 2]:
+    for NUMBER_OF_JOINTS in [1, 2]:
+        for QUANTIZATION_LEVELS in [11, 17]:
             for EPISODES in [500, 1300]:
                 EPSILON_DECAY = -1 * (np.log(EPSILON_MIN) / (0.75 * EPISODES))
 
@@ -389,7 +389,11 @@ if __name__ == "__main__":
                 test_results = test(3, training_env['Q_network'],
                                     training_env['policy'], training_env['robot'],
                                     TRAINED_WEIGHTS_FILE_PATH,
-                                    BEST_WEIGHTS_FILE_PATH, MOVIE_DIR)
+                                    BEST_WEIGHTS_FILE_PATH,
+                                    FRAME_DIR + os.sep +
+                                    '{}E_{}R_{}J'.format(EPISODES,
+                                                         QUANTIZATION_LEVELS,
+                                                         NUMBER_OF_JOINTS))
 
                 # Concatenate results #############################################
                 data.update(test_results)

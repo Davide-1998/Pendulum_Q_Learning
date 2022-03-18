@@ -72,30 +72,33 @@ class Pendulum:
         # If true, state is [cos(q),sin(q),qdot], else [q,qdot]
         self.withSinCos = False
 
-    def record_pendulum(self, custom_namefile='', movie_dir=os.getcwd()):
+    def record_pendulum(self, custom_namefile='', frame_dir=os.getcwd()):
         print('Start robot recording')
         windowID = self.viewer.viewer.gui.getWindowList()[0]
-        nameFile = movie_dir + os.sep + custom_namefile + \
-            'pendulum_%d_joints' % self.model.njoints
-        if not os.path.isdir(movie_dir):
-            os.mkdir(movie_dir, 0o777)
-            print('Created folder {}'.format(movie_dir))
+        nameFile = frame_dir + os.sep + custom_namefile + \
+            '_pendulum_%d_joints' % (self.model.njoints - 1)
+        if not os.path.isdir(frame_dir):
+            os.mkdir(frame_dir, 0o777)
+            print('Created folder {}'.format(frame_dir))
         self.viewer.viewer.gui.startCapture(windowID, nameFile, 'png')
 
-    def end_record(self, nameFile, movie_dir):
+    def end_record(self, nameFile, frame_dir):
+        nameFile += '_pendulum_{}_joints'.format(self.model.njoints - 1)
         windowID = self.viewer.viewer.gui.getWindowList()[0]
         self.viewer.viewer.gui.stopCapture(windowID)
         print('Ended robot recording')
-        dest_file = movie_dir + os.sep + nameFile
 
         # Generate videos  # Buggy
-        subprocess.run(['convert', '{}*'.format(dest_file),
-                        '{}.mp4'.format(dest_file)])
+        # dest_file = frame_dir + os.sep + nameFile
+        # subprocess.run(['convert', '{}*'.format(dest_file),
+        #                 '{}.mp4'.format(dest_file)])
         # Clean up images
-        subprocess.run(['rm', '{}/*.png'.format(movie_dir)])
+        # for el in os.listdir(movie_dir):
+        #     if '.png' in el:
+        #         subprocess.run(['rm', '{}/{}'.format(movie_dir, el)])
 
         # Clean temporary folder of imageMagick
-        subprocess.run(['rm', '-rf', '/tmp/magick-*'])
+        # subprocess.run(['rm', '-rf', '/tmp/magick-*'])
 
     def createPendulum(self, nbJoint, rootId=0, prefix='',
                        jointPlacement=None):
