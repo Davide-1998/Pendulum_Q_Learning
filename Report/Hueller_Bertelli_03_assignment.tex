@@ -76,12 +76,14 @@ in use.
 \end{figure}
 
 \section{Loss, Experience Replay, Policy}
-The traning loss uses the common least squares method between the target \(Q^{-}\) values, produced using the current cost and the discounted minimum estimated cost of the next state using old network parameters, and the current \(Q\) value, produced by the up-to-date network parameters: \(L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},u_{i}))^{2}\).
+The training loss uses the common least squares method between the target \(Q^{-}\) values, produced using the current cost and the discounted minimum estimated cost of the next state using old network parameters, and the current \(Q\) value, produced by the up-to-date network parameters: \(L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},u_{i}))^{2}\).
 The necessary data for the loss function, like state and control, are obtained using experience replay.
 Experience replay is a technique used in order to remove the correlation between sequences of data.
 Being \((x_{i}, u_{i}, c_{i}, x_{i+1})\) respectively the state, control, cost, and next state of the system at time \(i\), the experience replay buffer is composed of the list of transitions \({t_{i}=(x_{i}, u_{i}, c_{i}, x_{i+1}) \forall i\in [n, n+s)}\) the system produced during training and from which we randomly sample a mini-batch to be used for stochastic gradiant descent.
 As the experience replay buffer has a limited size \(s\leq maximum\:size\) old transitions are progressively removed as new transitions are added when the size limit is reached.
-
+The policy used during training is a similar \(\epsilon-greedy\) policy used in \cite{Mnih}, meaning a policy which select a random action with probability \(\epsilon\) and select the optimal action with probability \(1-\epsilon\).
+Likewise \cite{Mnih} we have used an exponentially decreasing \(\epsilon\), from \(max=1\) to \(min=0.01\), following the equation: \(\epsilon=max(min,e^{\frac{ln(min)}{0.75N}\times n})\), with \(n=\text{Episode index}\) and \(N=\text{Number of episodes}\).
+[INSERT EPSILON GRAPH]
 
 \section{System setup}
 The system provided as solution is composed by several objects:
