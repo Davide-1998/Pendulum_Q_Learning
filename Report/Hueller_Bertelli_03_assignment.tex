@@ -49,8 +49,7 @@ using a deep neural network, which forced to implement several new components
 into the training in order to ensure a good convergence.
 
 \section{Components of Deep Q-Network}
-The deep Q-learning algorithms introduces 3 majaor components: a deep neural network used to approximate the Q function, the use of mini-batches and experience replay in order to aid the proper execution of stochastic gradient descent, and the use of old network parameters in order to estimate the Q target for the loss function[INSERT CITATION 2].
-Another important component, one which is not exclusive to deep Q-network, is the policy used for learning the Q-function.
+The deep Q-learning algorithms introduces 3 majaor components: a deep neural network used to approximate the Q function, the use of mini-batches and experience replay in order to aid the proper execution of stochastic gradient descent, and the use of old network parameters in order to estimate the Q target for the loss function[INSERT CITATION 2].  Another important component, one which is not exclusive to deep Q-network, is the policy used for learning the Q-function.
 
 \section{Network}
 The network in use is composed of several fully connected layers which receive
@@ -62,7 +61,7 @@ Specifically the network is composed of: input layer, 4 dense hidden layers
 having respectively 16, 32, 64 and 64 activation cells, and the output layer
 having dimension equal to the number of discrete controls.
 The number of controls is \(|U|=resolution^{\#joints}\), which
-means that as \(resolution=15\) and \(\#joints=2\), \(|U|=15^{2}=225\) .
+means that if \(resolution=15\) and \(\#joints=2\), \(|U|=15^{2}=225\).
 [REDO IMAGE]
 In Figure \ref{fig:Network} is shown a graphical representation of the network
 in use.
@@ -75,58 +74,18 @@ in use.
 			 and a control discretization over 11 steps.}
 \end{figure}
 
-\section{Loss, Experience Replay, Policy}
-The training loss uses the common least squares method between the target \(Q^{-}\) values, produced using the current cost and the discounted minimum estimated cost of the next state using old network parameters, and the current \(Q\) value, produced by the up-to-date network parameters: \(L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},u_{i}))^{2}\).
-The necessary data for the loss function, like state and control, are obtained using experience replay.
-Experience replay is a technique used in order to remove the correlation between sequences of data.
-Being \((x_{i}, u_{i}, c_{i}, x_{i+1})\) respectively the state, control, cost, and next state of the system at time \(i\), the experience replay buffer is composed of the list of transitions \({t_{i}=(x_{i}, u_{i}, c_{i}, x_{i+1}) \forall i\in [n, n+s)}\) the system produced during training and from which we randomly sample a mini-batch to be used for stochastic gradiant descent.
-As the experience replay buffer has a limited size \(s\leq maximum\:size\) old transitions are progressively removed as new transitions are added when the size limit is reached.
-The policy used during training is a similar \(\epsilon-greedy\) policy used in \cite{Mnih}, meaning a policy which select a random action with probability \(\epsilon\) and select the optimal action with probability \(1-\epsilon\).
-Likewise \cite{Mnih} we have used an exponentially decreasing \(\epsilon\), from \(max=1\) to \(min=0.01\), following the equation: \(\epsilon=max(min,e^{\frac{ln(min)}{0.75N}\times n})\), with \(n=\text{Episode index}\) and \(N=\text{Number of episodes}\).
-[INSERT EPSILON GRAPH]
-
 \section{System setup}
 The system provided as solution is composed by several objects:
 \begin{itemize}
-	\item \textbf{Buffer}: It is the object responsible to store the examples
-		used by the actor network to train. Only the most recent examples are
-		retained over the training to avoid that the actor network will learn
-		a too old configuration of the system.
-	\item \textbf{Policy}: It is the object responsible to chose the best
-		control with which to feed the robot and allowing the movement among
-		states.
-	\item \textbf{Actor Network}: It is the network which has to be trained
-		ov the environment and which output represents the Q Value obtained
-		through the experience replay and exploration tasks.
-	\item \textbf{Critique Network}: It is the target network which knows the
-		environment and which is used to judge how well the actor network
-		behaves. Its weights are fixed and it is not subjected to training. 
+	\item \textbf{Loss Function}:The training loss uses the common least squares method between the target \(Q^{-}\) values, produced using the current cost and the discounted minimum estimated cost of the next state using old network parameters, and the current \(Q\) value, produced by the up-to-date network parameters: \(L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},u_{i}))^{2}\). The necessary data for the loss function, like state and control, are obtained using experience replay.
+	\item \textbf{Experience Replay}: Experience replay is a technique used in order to remove the correlation between sequences of data. Being \((x_{i}, u_{i}, c_{i}, x_{i+1})\) respectively the state, control, cost, and next state of the system at time \(i\), the experience replay buffer is composed of the list of transitions \({t_{i}=(x_{i}, u_{i}, c_{i}, x_{i+1}) \forall i\in [n, n+s)}\) the system produced during training and from which we randomly sample a mini-batch to be used for stochastic gradiant descent. Since the experience replay buffer has a limited size \(s\leq maximum\:size\) old transitions are progressively removed as new transitions are added when the size limit is reached.
+	\item \textbf{Policy}: The policy used during training is an \(\epsilon-greedy\) policy, similar to the one used in \cite{Mnih}, meaning a policy which select a random action with probability \(\epsilon\) and select the optimal action with probability \(1-\epsilon\). This behaviour is desirable due to the necessity of exploration during training. In a similar way to \cite{Mnih} we have used an exponentially decreasing \(\epsilon\), from \(max=1\) to \(min=0.01\), following the equation: \(\epsilon=max(min,e^{\frac{ln(min)}{0.75N}\times n})\), with \(n=\text{Episode index}\) and \(N=\text{Number of episodes}\).
+[INSERT EPSILON GRAPH]
 \end{itemize}
+
 \subsection{Actor Network training}
-The training of the network is carried on using the Mean Squared Error of the
-Q Values provided by the network as the loss function which has to be
-minimized and employing Adam as the optimizer.
 To run the training the user is required to provide two mandatory values: the
-number of episodes and the length of the episodes. These two parameters define,
-respectively, the number of the random starting positions from which the 
-robot will start the training and the length of the search executed for each
-episode.
-At each episode, and for all the length of the episodes, the buffer is randomly
-sampled obtaining batches of tuples containing states, controls, next states
-and costs. Then the provided batch is feeded to the Q network working as actor
-and its output is feeded to the policy which will return the optimal control
-for the next state, relying its judgment only on the Q Values provided, or it 
-will try to explore the environment selecting a random control depending
-by the probability set.
-Once the policy had given its output the new control is applied to the robot
-and the next state and cost are retrieved from the environment.
-Having those informations, the states and controls, the next states and Q
-Values, the actor network is feeded using the states and controls providing in
-output its Q values. At this point the Q Values of the batch and those of the
-actor network are used to compute the MSE representing our loss, lastly a
-gradient update is performed.
-Every 15 episodes the best network is saved by checking the average cost
-among them.
+number of episodes and the length of the episodes, defined in number of steps. These two parameters define, respectively, the number of the random starting positions from which the robot will start the training and the length of the search executed for each episode. For each step, the current state of the pendulum, \(x_{i}\), is processed by the policy, which produce the control \(u_{i}\) for this step. The control is applied on the pendulum, producing the next state \(x_{i+1}\) of the pendulum and the cost \(c_{i}\) of the pair \((x_{i},u_{i})\). This data are integrated as the transition \(t_{i}=(x_{i}, u_{i}, c_{i}, x_{i+1})\) and added into the experience replay buffer. Once every \(k_{1}\) steps we proceed to execute a gradient descent execution, updating the current \(Q\)-network's parameters by sampling a mini-batch of random transitions from the experience replay buffer and back-propagating the loss described previously using Adam as optimizer. After gradient descent once every \(k_{2}\) steps we update the \(Q\)-target network's parameters to match the current \(Q\) network ones.
 
 \section{Actor Network testing}
 The testing of the actor network was carried out first, varying the starting
