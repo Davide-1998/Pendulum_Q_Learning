@@ -50,6 +50,7 @@ class ExperienceReplay:
 
                     next_x, cost = robot.step(u)
                     final = True if i == int(num_ep/len_ep) - 1 else False
-                    self.add_transition(x=x, u=u, cost=cost, next_x=next_x, is_final=final)
+                    self.add_transition(x=x, u=u, cost=cost, next_x=next_x,
+                                        is_final=final)
                     pbar.update(1)
             pbar.close()
