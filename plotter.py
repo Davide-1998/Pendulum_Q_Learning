@@ -59,10 +59,14 @@ if __name__ == '__main__':
     plot_dir = os.getcwd() + os.sep + 'Figures'
     searchDir = os.getcwd() + os.sep + 'Collected_Data'
 
-    summary = {'cost_last_ep_random_pos': {}, 'cost_last_ep_down_pos': {},
-               'cost_best_net_down_pos': {}, 'cost_best_net_random_pos': {}}
-
+    summary_d = {'cost_last_ep_random_pos': {}, 'cost_last_ep_down_pos': {},
+                 'cost_best_net_down_pos': {}, 'cost_best_net_random_pos': {}}
+    summary = {}
     for nj in NUM_J:
+        summary[nj] = {'cost_last_ep_random_pos': {},
+                       'cost_last_ep_down_pos': {},
+                       'cost_best_net_down_pos': {},
+                       'cost_best_net_random_pos': {}}
         for ne in NUM_EP:
             for le in LEN_EP:
                 for rl in RES_LVL:
@@ -82,13 +86,14 @@ if __name__ == '__main__':
                     #     plot_episodes_loss(data, key, nj, ne, le, rl,
                     #                        save_name=key, plot_dir=plot_dir)
 
-                    for key in list(summary.keys()):
+                    for key in list(summary[nj].keys()):
                         avg = np.average([data[key][x]
                                           for x in list(data[key].keys())],
                                          axis=0)
-                        summary[key][descriptor] = avg
-    for key in list(summary.keys()):
-        plot_sum_dict(summary[key], y_label='Cumulative Sum',
-                      x_label='Episodes', title=key,
-                      save_name='Summary_%s' % key,
-                      plot_dir=plot_dir)
+                        summary[nj][key][descriptor] = avg
+    for nj in NUM_J:
+        for key in list(summary[nj].keys()):
+            plot_sum_dict(summary[nj][key], y_label='Cumulative Sum',
+                          x_label='Episodes', title=key,
+                          save_name='Summary_%s_%dJ' % (key, nj),
+                          plot_dir=plot_dir)
