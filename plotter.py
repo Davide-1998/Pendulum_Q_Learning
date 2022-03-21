@@ -1,11 +1,13 @@
 import json
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
 
-def plot_episodes_loss(data_array, key, n_joints, num_ep, len_ep, res_levels,
-                       searchDir=os.getcwd(), x_label='', y_label='', title='',
-                       l_width=2, save_name='', plot_dir=os.getcwd()):
+def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
+                       res_levels='', x_label='', y_label='', title='',
+                       l_width=2, save_name='', plot_dir=os.getcwd(),
+                       want_one=False):
 
     if not os.path.isdir(plot_dir):
         os.mkdir(plot_dir, 0o777)
@@ -16,33 +18,55 @@ def plot_episodes_loss(data_array, key, n_joints, num_ep, len_ep, res_levels,
     ax.set_ylabel(y_label, fontsize=24)
     ax.set_title(title, fontsize=32)
     if isinstance(data_array[key], dict):
-        for k, vals in data_array[key].items():
-            ax.plot(vals, linewidth=l_width)
+        avg = [data_array[key][x] for x in list(data_array[key].keys())]
+        ax.plot(np.average(avg, axis=0), linewidth=l_width)
     else:
         ax.plot(data_array[key], linewidth=l_width)
-    fig.legend(range(1, 4))
     fig.tight_layout()
     fig.savefig(plot_dir + os.sep + save_name +
-                          '_{}J_{}E_{}EL.png'
-                          .format(n_joints, num_ep, len_ep), dpi=200)
+                '_{}J_{}E_{}EL_{}RES.png'
+                .format(n_joints, num_ep, len_ep, res_levels), dpi=200)
+    plt.close()
+
+
+def plot_sum_dict(data_dict, x_label='', y_label='', title='', save_name='',
+                  plot_dir=os.getcwd()):
+    fig, ax = plt.subplots(1, dpi=200, figsize=(16, 9))
+    ax.grid(True)
+    ax.set_xlabel(x_label, fontsize=24)
+    ax.set_ylabel(y_label, fontsize=24)
+    ax.set_title(title, fontsize=32)
+
+    labels = []
+    for k, vals in list(data_dict.items()):
+        ax.plot(vals, linewidth=4)
+        labels.append(k)
+
+    ax.legend(labels, fontsize=24)
+    fig.tight_layout()
+    fig.savefig(plot_dir + os.sep + save_name + '.png', dpi=200)
     plt.close()
 
 
 if __name__ == '__main__':
-    NUM_J = [2]
-    NUM_EP = [100, 500, 1000]
+    NUM_J = [1]
+    NUM_EP = [1300]
     LEN_EP = [256]
-    RES_LVL = [15]
+    RES_LVL = [11, 17]
 
     plot_dir = os.getcwd() + os.sep + 'Figures'
     searchDir = os.getcwd() + os.sep + 'Collected_Data'
+
+    summary = {'cost_last_ep_random_pos': {}, 'cost_last_ep_down_pos': {},
+               'cost_best_net_down_pos': {}, 'cost_best_net_random_pos': {}}
 
     for nj in NUM_J:
         for ne in NUM_EP:
             for le in LEN_EP:
                 for rl in RES_LVL:
-                    nameFile = 'Results_{}_joints_{}_ep_{}_len_{}_res.json'\
-                               .format(nj, ne, le, rl)
+                    descriptor = '{}_joints_{}_ep_{}_len_{}_res'\
+                                 .format(nj, ne, le, rl)
+                    nameFile = 'Results_' + descriptor + '.json'
                     file_in = searchDir + os.sep + nameFile
 
                     if not os.path.isfile(file_in):
@@ -52,6 +76,17 @@ if __name__ == '__main__':
                     data = json.load(io_in)
                     io_in.close()
 
-                    for key in data.keys():
-                        plot_episodes_loss(data, key, nj, ne, le, rl,
-                                           save_name=key, plot_dir=plot_dir)
+                    # for key in data.keys():
+                    #     plot_episodes_loss(data, key, nj, ne, le, rl,
+                    #                        save_name=key, plot_dir=plot_dir)
+
+                    for key in list(summary.keys()):
+                        avg = np.average([data[key][x]
+                                          for x in list(data[key].keys())],
+                                         axis=0)
+                        summary[key][descriptor] = avg
+    for key in list(summary.keys()):
+        plot_sum_dict(summary[key], y_label='Cumulative Sum',
+                      x_label='Episodes', title=key,
+                      save_name='Summary_%s' % key,
+                      plot_dir=plot_dir)
