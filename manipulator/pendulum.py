@@ -78,7 +78,7 @@ class Pendulum:
         nameFile = frame_dir + os.sep + custom_namefile + \
             '_pendulum_%d_joints' % (self.model.njoints - 1)
         if not os.path.isdir(frame_dir):
-            os.mkdir(frame_dir, 0o777)
+            os.makedirs(frame_dir, 0o777)
             print('Created folder {}'.format(frame_dir))
         self.viewer.viewer.gui.startCapture(windowID, nameFile, 'png')
 
