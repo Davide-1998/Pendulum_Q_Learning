@@ -90,7 +90,7 @@ def test_network(robot, Q, pi, initial_state=None, episode_length=256,
 
     if makeMovie:
         robot.pendulum.record_pendulum(custom_namefile=record_namefile,
-                                       movie_dir=record_folder)
+                                       frame_dir=record_folder)
 
     for _ in range(episode_length):
         state = robot.x.copy()
@@ -386,7 +386,7 @@ if __name__ == "__main__":
                                               TRAINED_WEIGHTS_FILE_PATH)
 
                 # Test of system ##################################################
-                test_results = test(3, training_env['Q_network'],
+                test_results = test(15, training_env['Q_network'],
                                     training_env['policy'], training_env['robot'],
                                     TRAINED_WEIGHTS_FILE_PATH,
                                     BEST_WEIGHTS_FILE_PATH,

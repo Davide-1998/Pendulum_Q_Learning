@@ -13,6 +13,7 @@ def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
         os.mkdir(plot_dir, 0o777)
 
     fig, ax = plt.subplots(1, dpi=200, figsize=(16, 9))
+    plt.tick_params(labelsize=20)
     ax.grid(True)
     ax.set_xlabel(x_label, fontsize=24)
     ax.set_ylabel(y_label, fontsize=24)
@@ -31,7 +32,8 @@ def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
 
 def plot_sum_dict(data_dict, x_label='', y_label='', title='', save_name='',
                   plot_dir=os.getcwd()):
-    fig, ax = plt.subplots(dpi=200, figsize=(16, 9))
+    fig, ax = plt.subplots(dpi=200, figsize=(14, 9))
+    plt.tick_params(labelsize=20)
     ax.grid(True)
     ax.set_xlabel(x_label, fontsize=24)
     ax.set_ylabel(y_label, fontsize=24)
@@ -42,9 +44,9 @@ def plot_sum_dict(data_dict, x_label='', y_label='', title='', save_name='',
         ax.plot(vals, linewidth=4)
         labels.append(k)
 
-    ax.legend(labels, fontsize=18, loc='lower center', ncol=2,
+    ax.legend(labels, fontsize=20, loc='lower center', ncol=2,
               bbox_to_anchor=(0.5, -0.5))
-    fig.tight_layout(h_pad=0, pad=0, rect=(0, 0, 1, 1))
+    fig.tight_layout(h_pad=0, pad=0)
     fig.savefig(plot_dir + os.sep + save_name + '.png', dpi=200,
                 transparent=True)
     plt.close()
@@ -82,9 +84,10 @@ if __name__ == '__main__':
                     data = json.load(io_in)
                     io_in.close()
 
-                    # for key in data.keys():
-                    #     plot_episodes_loss(data, key, nj, ne, le, rl,
-                    #                        save_name=key, plot_dir=plot_dir)
+                    for key in data.keys():
+                        plot_episodes_loss(data, key, nj, ne, le, rl,
+                                           save_name=key, plot_dir=plot_dir,
+                                           title=key+'_'+descriptor)
 
                     for key in list(summary[nj].keys()):
                         avg = np.average([data[key][x]
