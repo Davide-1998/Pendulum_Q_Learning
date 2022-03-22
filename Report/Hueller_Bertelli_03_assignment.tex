@@ -200,7 +200,7 @@ Following are shown the results in case the robot has 1 joint.
 			 joint and 17 resolution steps.}
 	\label{fig:TrainLoss_1_1300_17}
 \end{figure}
-\vspace{-1cm}
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_random_pos_1J.png"}
@@ -224,7 +224,7 @@ Following are shown the results in case the robot has 1 joint.
 			 random positions using the best performing network.}
 	\label{fig:Test_1_best_net_random_pos}
 \end{figure}
-\vspace{-1cm}
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_down_pos_1J.png"}
@@ -232,6 +232,14 @@ Following are shown the results in case the robot has 1 joint.
 			 down positions using the best performing network.}
 	\label{fig:Test_1_best_net_down_pos}
 \end{figure}
+
+It is possible to observe how for both configurations having 500 and 1300
+training episodes the system converges after 400 of them leading the
+training loss to 0. Furthermore Figures \ref{Test_1_last_ep_down_pos} and
+\ref{Test_1_best_net_random_pos} shows the best results for the setting having 
+1300 training episodes and 17 control resolution steps. Instead,
+\ref{Test_1_last_ep_random_pos} and \ref{Test_1_best_net_down_pos} shows the
+settings having 11 control resolution steps as the best performing ones.
 
 \subsection{2 joints}
 Following are shown the results in case the robot has 2 joints.
@@ -301,7 +309,6 @@ Following are shown the results in case the robot has 2 joints.
 	\label{fig:Test_2_best_net_down_pos}
 \end{figure}\subsection{General remarks}
 \newpage
-\section{Conclusions}
 
 \begin{thebibliography}{9}
 	\bibitem{Mnih}
