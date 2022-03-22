@@ -110,7 +110,7 @@ The system provided as solution is composed by several objects:
 		  exploration during training. In a similar way to \cite{Mnih} we have
 		  used an exponentially decreasing \(\epsilon\), from \(max=1\) to
 		  \(min=0.01\), following the equation:
-		  \(\epsilon=max(min,e^{\frac{ln(min)}{0.75N}\times n})\), with
+		  \(\epsilon=max(\epsilon_{min},e^{\frac{ln(\epsilon_{min})}{0.75N}\times n})\), with
 		  \(n=\text{Episode index}\) and \(N=\text{Number of episodes}\).
 		  The decaying has been conceived in order to adapt to the number of
 		  training episodes and reach the minimum epsilon value after executing
@@ -168,99 +168,138 @@ and the total cost in the testing phase.
 \subsection{1 joint}
 Following are shown the results in case the robot has 1 joint.
 
-\label{fig:TrainLoss_1_500_11}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_500E_256EL_11RES.png"}
 	\caption{Training loss over 500 episodes lasted 256 iterations having 1
 			 joint and 11 resolution steps.}
+	\label{fig:TrainLoss_1_500_11}
 \end{figure}
-\vspace{-1cm}
 
-\label{fig:TrainLoss_1_500_17}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_500E_256EL_17RES.png"}
 	\caption{Training loss over 500 episodes lasted 256 iterations having 1
 			 joint and 17 resolution steps.}
+	\label{fig:TrainLoss_1_500_17}
 \end{figure}
 \vspace{-1cm}
 
-\label{fig:TrainLoss_1_1000_11}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_500E_256EL_11RES.png"}
-	\caption{Training loss over 1000 episodes lasted 256 iterations having 1
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_1300E_256EL_11RES.png"}
+	\caption{Training loss over 1300 episodes lasted 256 iterations having 1
 			 joint and 11 resolution steps.}
+	\label{fig:TrainLoss_1_1300_11}
 \end{figure}
-\vspace{-1cm}
 
-\label{fig:TrainLoss_1_1000_17}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_500E_256EL_11RES.png"}
-	\caption{Training loss over 1000 episodes lasted 256 iterations having 1
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_1300E_256EL_17RES.png"}
+	\caption{Training loss over 1300 episodes lasted 256 iterations having 1
 			 joint and 17 resolution steps.}
+	\label{fig:TrainLoss_1_1300_17}
 \end{figure}
 \vspace{-1cm}
-
-% \label{fig:TrainTime1}
-% \begin{figure}[H]
-% 	\centering
-% 	\includegraphics[width=8.5cm]{"../Figures/training_time_over_epiodes_1J_500E_256EL.png"}
-%	\caption{Training time having 1 joints.}
-% \end{figure}
-
-\label{fig:Test_1_random_pos}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/loss_last_ep_random_positions_1J_500E_256EL.png"}
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_random_pos_1J.png"}
 	\caption{Total cost over the test episodes for the robot starting
-			 from random positions.}
+			 from random positions with the most trained network.}
+	\label{fig:Test_1_last_ep_random_pos}
 \end{figure}
-\vspace{-1cm}
-\label{fig:Test_1_down_pos}
+
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/loss_last_ep_down_positions_1J_500E_256EL.png"}
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_down_pos_1J.png"}
 	\caption{Total cost over the test episodes for the robot starting
-			 from the down position.}
+			 from the down position with the most trained network.}
+	\label{fig:Test_1_last_ep_down_pos}
 \end{figure}
-\vspace{-1cm}
-\label{fig:Test_1_best_random_pos}
+
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/loss_best_net_random_positions_1J_500E_256EL.png"}
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_random_pos_1J.png"}
 	\caption{Total cost over the test episodes for the robot starting from
 			 random positions using the best performing network.}
+	\label{fig:Test_1_best_net_random_pos}
 \end{figure}
 \vspace{-1cm}
-\label{fig:Test_1_best_down_pos}
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/loss_best_net_down_positions_1J_500E_256EL.png"}
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_down_pos_1J.png"}
 	\caption{Total cost over the test episodes for the robot starting from
 			 down positions using the best performing network.}
+	\label{fig:Test_1_best_net_down_pos}
 \end{figure}
 
 \subsection{2 joints}
 Following are shown the results in case the robot has 2 joints.
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_2J_500E_256EL_11RES.png"}
+	\caption{Training loss over 500 episodes lasted 256 iterations having 2
+			 joint and 11 resolution steps.}
+	\label{fig:TrainLoss_2_500_11}
+\end{figure}
 
-\subsection{General remarks}
-% As shown in figures \ref{fig:TrainLoss1}, \ref{fig:TrainLoss2}
-we can observe how the loss during
-training shows a progressive reduction with the increasing number of episodes.
-The spikes in the graph has to be attributed to the exploration task that
-is conducted by the policy.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_2J_500E_256EL_17RES.png"}
+	\caption{Training loss over 500 episodes lasted 256 iterations having 2
+			 joint and 17 resolution steps.}
+	\label{fig:TrainLoss_2_500_17}
+\end{figure}
+\vspace{-1cm}
 
-In the testing phase it is possible to observe that the cumulative cost
-saturates meaning that the robot is performing actions leading to the best
-solution possible which is returning a cost almost 0.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_2J_1300E_256EL_11RES.png"}
+	\caption{Training loss over 1300 episodes lasted 256 iterations having 2
+			 joint and 11 resolution steps.}
+	\label{fig:TrainLoss_2_1300_11}
+\end{figure}
 
-Regarding the training time plots, it is possible to observe how independently
-by the number of joints the time required for the computations saturates
-without exceeding the 0.8 seconds per episode.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/training_loss_2J_1300E_256EL_17RES.png"}
+	\caption{Training loss over 1300 episodes lasted 256 iterations having 2
+			 joint and 17 resolution steps.}
+	\label{fig:TrainLoss_2_1300_17}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_random_pos_2J.png"}
+	\caption{Total cost over the test episodes for the robot starting
+			 from random positions with the most trained network.}
+	\label{fig:Test_2_last_ep_random_pos}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_down_pos_2J.png"}
+	\caption{Total cost over the test episodes for the robot starting
+			 from the down position with the most trained network.}
+	\label{fig:Test_2_last_ep_down_pos}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_random_pos_2J.png"}
+	\caption{Total cost over the test episodes for the robot starting from
+			 random positions using the best performing network.}
+	\label{fig:Test_2_best_net_random_pos}
+\end{figure}
+\vspace{-1cm}
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_down_pos_2J.png"}
+	\caption{Total cost over the test episodes for the robot starting from
+			 down positions using the best performing network.}
+	\label{fig:Test_2_best_net_down_pos}
+\end{figure}\subsection{General remarks}
 \newpage
 \section{Conclusions}
 
