@@ -192,7 +192,7 @@ Following are shown the results in case the robot has 1 joint.
 			 joint and 11 resolution steps.}
 	\label{fig:TrainLoss_1_1300_11}
 \end{figure}
-
+\vspace{-1cm}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_1300E_256EL_17RES.png"}
@@ -235,10 +235,10 @@ Following are shown the results in case the robot has 1 joint.
 
 It is possible to observe how for both configurations having 500 and 1300
 training episodes the system converges after 400 of them leading the
-training loss to 0. Furthermore Figures \ref{Test_1_last_ep_down_pos} and
-\ref{Test_1_best_net_random_pos} shows the best results for the setting having 
+training loss to 0. Furthermore Figures \ref{fig:Test_1_last_ep_down_pos} and
+\ref{fig:Test_1_best_net_random_pos} shows the best results for the setting having 
 1300 training episodes and 17 control resolution steps. Instead,
-\ref{Test_1_last_ep_random_pos} and \ref{Test_1_best_net_down_pos} shows the
+\ref{fig:Test_1_last_ep_random_pos} and \ref{fig:Test_1_best_net_down_pos} shows the
 settings having 11 control resolution steps as the best performing ones.
 
 \subsection{2 joints}
@@ -307,8 +307,19 @@ Following are shown the results in case the robot has 2 joints.
 	\caption{Total cost over the test episodes for the robot starting from
 			 down positions using the best performing network.}
 	\label{fig:Test_2_best_net_down_pos}
-\end{figure}\subsection{General remarks}
+	\end{figure}
+It is possible to observe how differently from the 1 joint case, the 2 joints
+implementation shows a training loss which decreases at around 800 episodes
+to then increase again. This behaviour may be due to the non-linear
+approximation which does not grant convergence.
+Furthermore, in the testing phase, the setting having 1300 episodes and 11
+control resolution steps was the one leading to the lowest cumulative cost
+as shown in Figures \ref{fig:Test_2_last_ep_random_pos}, \ref{fig:Test_2_last_ep_down_pos} and
+\ref{fig:Test_2_best_net_down_pos}, while in Figure \ref{fig:Test_2_best_net_random_pos}
+shows the setting 1300 episodes and 17 control resolution steps as the winning one.
 \newpage
+
+\section{Conclusion}
 
 \begin{thebibliography}{9}
 	\bibitem{Mnih}
