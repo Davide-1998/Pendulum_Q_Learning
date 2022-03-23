@@ -139,7 +139,8 @@ def training(n_joints, q_levels, num_episodes, len_episodes, exp_replay_size,
     # Set optimizer specifying the learning rates
     critic_optimizer = tf.keras.optimizers.Adam(learning_rate)
 
-    data = {'training_loss': [], 'training_time': [], 'epsilon': []}
+    data = {'training_loss': [], 'training_time': [], 'epsilon': [],
+            'cost_to_go': {}}
 
     # filling the experience replay buffer
     buffer.fill(no_op_th, len_episodes,
@@ -203,7 +204,10 @@ def training(n_joints, q_levels, num_episodes, len_episodes, exp_replay_size,
                 if target_update > target_update_th:
                     Q_network_target.set_weights(Q_network.get_weights())
                     target_update = 1
-
+                if e not in data['cost_to_go']:
+                    data['cost_to_go'][e] = [cost_to_go]
+                else:
+                    data['cost_to_go'][e].append(cost_to_go)
                 pbar.update(1)
 
             pbar.close()
