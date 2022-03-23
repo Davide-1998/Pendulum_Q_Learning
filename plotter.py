@@ -2,6 +2,7 @@ import json
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import subprocess
 
 
 def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
@@ -30,8 +31,9 @@ def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
     plt.close()
 
 
-def plot_sum_dict(data_dict, x_label='', y_label='', title='', save_name='',
-                  plot_dir=os.getcwd()):
+def plot_dict(data_dict, x_label='', y_label='', title='', save_name='',
+              plot_dir=os.getcwd(), label=True, specific_keys=[],
+              legend_title=''):
     fig, ax = plt.subplots(dpi=200, figsize=(14, 9))
     plt.tick_params(labelsize=20)
     ax.grid(True)
@@ -40,16 +42,57 @@ def plot_sum_dict(data_dict, x_label='', y_label='', title='', save_name='',
     ax.set_title(title, fontsize=32)
 
     labels = []
-    for k, vals in list(data_dict.items()):
-        ax.plot(vals, linewidth=4)
-        labels.append(k)
+    if len(specific_keys) != 0:
+        for k in specific_keys:
+            ax.plot(data_dict[k], linewidth=4)
+            labels.append(k)
+    else:
+        for k, vals in list(data_dict.items()):
+            ax.plot(vals, linewidth=4)
+            labels.append(k)
 
-    ax.legend(labels, fontsize=20, loc='lower center', ncol=2,
-              bbox_to_anchor=(0.5, -0.5))
+    if label:
+        ax.legend(labels, fontsize=20, loc='lower center', ncol=2,
+                  bbox_to_anchor=(0.5, -0.5), title=legend_title,
+                  title_fontsize=20)
     fig.tight_layout(h_pad=0, pad=0)
     fig.savefig(plot_dir + os.sep + save_name + '.png', dpi=200,
                 transparent=True)
     plt.close()
+
+
+def make_video(frame_folder=os.getcwd()):
+    for desc_folder in os.listdir(frame_folder):
+        videos = {}
+        for frame in os.listdir(frame_folder + os.sep + desc_folder):
+            frame = frame.replace('.png', '').split('_')
+
+            frame_name = ''
+            for el in frame[0:4]:
+                frame_name += el + '_'
+
+            frame_desc = ''
+            for el in frame[4:11]:
+                frame_desc += el + '_'
+
+            frame_idx = frame[-1]
+
+            n_frame_name = frame_name + frame_desc
+            frame_path = os.path.abspath(frame_folder + os.sep + desc_folder +
+                                         os.sep + n_frame_name + frame_idx)
+
+            if n_frame_name not in videos:
+                videos[n_frame_name] = [frame_path + '.png']
+            else:
+                videos[n_frame_name].append(frame_path + '.png')
+        for key in list(videos.keys()):
+            videos[key].sort()
+            command = ['convert']
+            for el in videos[key]:
+                command.append(el)
+            command.append('{}/{}/{}.mp4'
+                           .format(frame_folder, desc_folder, key))
+            subprocess.run(command)
 
 
 if __name__ == '__main__':
@@ -84,6 +127,18 @@ if __name__ == '__main__':
                     data = json.load(io_in)
                     io_in.close()
 
+                    keys_to_plot = ['0', str(int(ne/4)), str(int(ne/2)),
+                                    str(int(ne-1))]
+                    plot_dict(data['cost_to_go'],
+                              x_label='Episodes_length',
+                              y_label='Cumulative cost',
+                              plot_dir=plot_dir,
+                              specific_keys=keys_to_plot,
+                              title='training_cost_' + descriptor,
+                              save_name='Training_costs_' + descriptor,
+                              legend_title='Episodes indices')
+
+                    '''
                     for key in data.keys():
                         plot_episodes_loss(data, key, nj, ne, le, rl,
                                            save_name=key, plot_dir=plot_dir,
@@ -94,9 +149,12 @@ if __name__ == '__main__':
                                           for x in list(data[key].keys())],
                                          axis=0)
                         summary[nj][key][descriptor] = avg
-    for nj in NUM_J:
-        for key in list(summary[nj].keys()):
-            plot_sum_dict(summary[nj][key], y_label='Cumulative Sum',
-                          x_label='Episodes', title=key,
-                          save_name='Summary_%s_%dJ' % (key, nj),
-                          plot_dir=plot_dir)
+                    '''
+    # for nj in NUM_J:
+    #     for key in list(summary[nj].keys()):
+    #         plot_dict(summary[nj][key], y_label='Cumulative Sum',
+    #                   x_label='Episodes', title=key,
+    #                   save_name='Summary_%s_%dJ' % (key, nj),
+    #                   plot_dir=plot_dir)
+
+    # make_video('Frames')
