@@ -32,7 +32,7 @@ def plot_episodes_loss(data_array, key, n_joints='', num_ep='', len_ep='',
 
 
 def plot_dict(data_dict, x_label='', y_label='', title='', save_name='',
-              plot_dir=os.getcwd(), label=True, specific_keys=[],
+              plot_dir=os.getcwd(), label=True, last_one=False,
               legend_title=''):
     fig, ax = plt.subplots(dpi=200, figsize=(14, 9))
     plt.tick_params(labelsize=20)
@@ -42,16 +42,17 @@ def plot_dict(data_dict, x_label='', y_label='', title='', save_name='',
     ax.set_title(title, fontsize=32)
 
     labels = []
-    if len(specific_keys) != 0:
-        for k in specific_keys:
-            ax.plot(data_dict[k], linewidth=4)
-            labels.append(k)
+    if last_one:
+        last_vals = []
+        for k, list_of_vals in list(data_dict.items()):
+            last_vals.append(list_of_vals[-1])
+        ax.plot(last_vals, linewidth=2)
     else:
         for k, vals in list(data_dict.items()):
             ax.plot(vals, linewidth=4)
             labels.append(k)
 
-    if label:
+    if label and len(labels) != 0:
         ax.legend(labels, fontsize=20, loc='lower center', ncol=2,
                   bbox_to_anchor=(0.5, -0.5), title=legend_title,
                   title_fontsize=20)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
                               x_label='Episodes_length',
                               y_label='Cumulative cost',
                               plot_dir=plot_dir,
-                              specific_keys=keys_to_plot,
+                              last_one=True,
                               title='training_cost_' + descriptor,
                               save_name='Training_costs_' + descriptor,
                               legend_title='Episodes indices')
