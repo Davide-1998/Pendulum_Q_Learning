@@ -139,7 +139,6 @@ if __name__ == '__main__':
                               save_name='Training_costs_' + descriptor,
                               legend_title='Episodes indices')
 
-                    '''
                     for key in data.keys():
                         plot_episodes_loss(data, key, nj, ne, le, rl,
                                            save_name=key, plot_dir=plot_dir,
@@ -150,12 +149,12 @@ if __name__ == '__main__':
                                           for x in list(data[key].keys())],
                                          axis=0)
                         summary[nj][key][descriptor] = avg
-                    '''
-    # for nj in NUM_J:
-    #     for key in list(summary[nj].keys()):
-    #         plot_dict(summary[nj][key], y_label='Cumulative Sum',
-    #                   x_label='Episodes', title=key,
-    #                   save_name='Summary_%s_%dJ' % (key, nj),
-    #                   plot_dir=plot_dir)
+
+    for nj in NUM_J:
+        for key in list(summary[nj].keys()):
+            plot_dict(summary[nj][key], y_label='Cumulative Sum',
+                      x_label='Episodes', title=key,
+                      save_name='Summary_%s_%dJ' % (key, nj),
+                      plot_dir=plot_dir)
 
     # make_video('Frames')
