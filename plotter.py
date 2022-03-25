@@ -131,18 +131,22 @@ if __name__ == '__main__':
                     keys_to_plot = ['0', str(int(ne/4)), str(int(ne/2)),
                                     str(int(ne-1))]
                     plot_dict(data['cost_to_go'],
-                              x_label='Episodes_length',
+                              x_label='Episodes',
                               y_label='Cumulative cost',
                               plot_dir=plot_dir,
                               last_one=True,
-                              title='training_cost_' + descriptor,
+                              title='training cost ' +
+                                    descriptor.replace('_', ' '),
                               save_name='Training_costs_' + descriptor,
                               legend_title='Episodes indices')
 
                     for key in data.keys():
                         plot_episodes_loss(data, key, nj, ne, le, rl,
                                            save_name=key, plot_dir=plot_dir,
-                                           title=key+'_'+descriptor)
+                                           x_label='Episodes', y_label='Loss',
+                                           title=key.replace('_', ' ') +
+                                                 ' ' +
+                                                 descriptor.replace('_', ' '))
 
                     for key in list(summary[nj].keys()):
                         avg = np.average([data[key][x]
@@ -153,7 +157,7 @@ if __name__ == '__main__':
     for nj in NUM_J:
         for key in list(summary[nj].keys()):
             plot_dict(summary[nj][key], y_label='Cumulative Sum',
-                      x_label='Episodes', title=key,
+                      x_label='Time', title=key.replace('_', ' '),
                       save_name='Summary_%s_%dJ' % (key, nj),
                       plot_dir=plot_dir)
 
