@@ -10,6 +10,8 @@
 % \setlength{\columnsep}{0.6cm}
 
 \begin{document}
+\setlength{\textfloatsep}{0.3cm}
+\setlength{\floatsep}{0.3cm}
 \title{
 	   \LARGE\textbf{Third Assignment ORC\\DQN Network}
 	   \vspace{1cm}
@@ -88,8 +90,9 @@ The system provided as solution is composed by several objects:
 		  the current cost and the discounted minimum estimated cost of the
 		  next state using old network parameters, and the current \(Q\) value,
 		  produced by the up-to-date network parameters:
-		  \(L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},
-		  u_{i}))^{2}\). The necessary data for the loss function, like state
+		  \[L(Q^{-},Q)=\sum_{i}(c_{i}+\gamma\min_{u'}Q^{-}(x_{i+1},u')-Q(x_{i},
+		  u_{i}))^{2}\]
+		  The necessary data for the loss function, like state
 		  and control, are obtained using experience replay.
 	\item \textbf{Experience Replay}: Experience replay is a technique used in
 		  order to remove the correlation between sequences of data. Being
@@ -110,8 +113,10 @@ The system provided as solution is composed by several objects:
 		  exploration during training. In a similar way to \cite{Mnih} we have
 		  used an exponentially decreasing \(\epsilon\), from \(max=1\) to
 		  \(min=0.01\), following the equation:
-		  \(\epsilon=max(\epsilon_{min},e^{\frac{ln(\epsilon_{min})}{0.75N}\times n})\), with
-		  \(n=\text{Episode index}\) and \(N=\text{Number of episodes}\).
+		  \[
+		  	\epsilon=max(\epsilon_{min}, e^{\frac{ln(\epsilon_{min})}{0.75N}\times n})
+		  \]
+		  with $n$ Episode index and $N$ Number of episodes.
 		  The decaying has been conceived in order to adapt to the number of
 		  training episodes and reach the minimum epsilon value after executing
 		  75\% of the episodes.
@@ -122,7 +127,7 @@ The system provided as solution is composed by several objects:
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/epsilon_1J_500E_256EL_11RES.png"} \\
 	\caption{Epsilon graph over 500 training episodes.}
-	\includegraphics[width=8.5cm]{"../Figures/epsilon_1J_1000E_256EL_11RES.png"}
+	\includegraphics[width=8.5cm]{"../Figures/epsilon_1J_1300E_256EL_11RES.png"}
 	\caption{Epsilon graph over 1000 training episodes.}
 \end{figure}
 
@@ -159,10 +164,11 @@ the length of the episode.
 % Training time
 % Changing resolution of the controls
 The system has been tested over different configurations of the robot,
-specifically with 1 and 2 joints, different control resolution and
-different number and length of episodes.
-The evaluation metrics used are the loss of the training, the training time
-and the total cost in the testing phase.
+specifically with 1 and 2 joints, 11 and 17 control resolution steps and
+different numbers of training episodes.
+The evaluation metrics used are the loss of the training, the training
+cost-to-go at the end of each training episodes and the cumulative cost in the
+testing phase.
 
 \section{Results}
 \subsection{1 joint}
@@ -183,7 +189,6 @@ Following are shown the results in case the robot has 1 joint.
 			 joint and 17 resolution steps.}
 	\label{fig:TrainLoss_1_500_17}
 \end{figure}
-\vspace{-1cm}
 
 \begin{figure}[H]
 	\centering
@@ -192,31 +197,56 @@ Following are shown the results in case the robot has 1 joint.
 			 joint and 11 resolution steps.}
 	\label{fig:TrainLoss_1_1300_11}
 \end{figure}
-\vspace{-1cm}
+
 \begin{figure}[H]
-	\centering
 	\includegraphics[width=8.5cm]{"../Figures/training_loss_1J_1300E_256EL_17RES.png"}
 	\caption{Training loss over 1300 episodes lasted 256 iterations having 1
 			 joint and 17 resolution steps.}
 	\label{fig:TrainLoss_1_1300_17}
 \end{figure}
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_random_pos_1J.png"}
-	\caption{Total cost over the test episodes for the robot starting
-			 from random positions with the most trained network.}
-	\label{fig:Test_1_last_ep_random_pos}
-\end{figure}
+% Training_cost_to_go
+Together with the training loss, it is also important to observe the behaviour
+of the episodes cost to go at the end of their length.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_down_pos_1J.png"}
-	\caption{Total cost over the test episodes for the robot starting
-			 from the down position with the most trained network.}
-	\label{fig:Test_1_last_ep_down_pos}
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_1_joints_500_ep_256_len_11_res.png"}
+	\caption{Training cost-to-go over 500 episodes lasted 256 iterations having 1
+			 joint and 11 resolution steps.}
+	\label{fig:Train_cost_to_go_1_500_11}
 \end{figure}
 
+\begin{figure}[H]
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_1_joints_500_ep_256_len_17_res.png"}
+	\caption{Training cost-to-go over 500 episodes lasted 256 iterations having 1
+			 joint and 17 resolution steps.}
+	\label{fig:Train_cost_to_go_1_500_17}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_1_joints_1300_ep_256_len_11_res.png"}
+	\caption{Training cost-to-go over 1300 episodes lasted 256 iterations having 1
+			 joint and 11 resolution steps.}
+	\label{fig:Train_cost_to_go_1_1300_11}
+\end{figure}
+\begin{figure}[H]
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_1_joints_1300_ep_256_len_17_res.png"}
+	\caption{Training cost-to-go over 1300 episodes lasted 256 iterations having 1
+			 joint and 17 resolution steps.}
+	\label{fig:Train_cost_to_go_1_1300_17}
+\end{figure}
+
+As shown in the graphs, the cost keeps decreasing until it reaches convergence
+in the latter episodes of the training, as shown in Figures
+\ref{fig:Train_cost_to_go_1_500_11} and \ref{fig:Train_cost_to_go_1_500_17}
+where it converges at around the $400^{th}$ episode, while using more
+training episodes also the convergence point is moved further in time as shown
+by Figures \ref{fig:Train_cost_to_go_1_1300_11} and
+\ref{fig:Train_cost_to_go_1_1300_17}
+where convergence is reached towards the $600^{th}$ episode.
+
+% Test phase
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_random_pos_1J.png"}
@@ -225,6 +255,7 @@ Following are shown the results in case the robot has 1 joint.
 	\label{fig:Test_1_best_net_random_pos}
 \end{figure}
 
+
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_best_net_down_pos_1J.png"}
@@ -232,14 +263,6 @@ Following are shown the results in case the robot has 1 joint.
 			 down positions using the best performing network.}
 	\label{fig:Test_1_best_net_down_pos}
 \end{figure}
-
-It is possible to observe how for both configurations having 500 and 1300
-training episodes the system converges after 400 of them leading the
-training loss to 0. Furthermore Figures \ref{fig:Test_1_last_ep_down_pos} and
-\ref{fig:Test_1_best_net_random_pos} shows the best results for the setting having 
-1300 training episodes and 17 control resolution steps. Instead,
-\ref{fig:Test_1_last_ep_random_pos} and \ref{fig:Test_1_best_net_down_pos} shows the
-settings having 11 control resolution steps as the best performing ones.
 
 \subsection{2 joints}
 Following are shown the results in case the robot has 2 joints.
@@ -277,21 +300,48 @@ Following are shown the results in case the robot has 2 joints.
 	\label{fig:TrainLoss_2_1300_17}
 \end{figure}
 
+% Training cost-to-go
+Following are the graphs showing the training cost to go, gathered from the
+training episodes.
+
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_random_pos_2J.png"}
-	\caption{Total cost over the test episodes for the robot starting
-			 from random positions with the most trained network.}
-	\label{fig:Test_2_last_ep_random_pos}
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_2_joints_500_ep_256_len_11_res.png"}
+	\caption{Training cost-to-go over 500 episodes lasted 256 iterations having 2
+			 joint and 11 resolution steps.}
+	\label{fig:Train_cost_to_go_2_500_11}
 \end{figure}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=8.5cm]{"../Figures/Summary_cost_last_ep_down_pos_2J.png"}
-	\caption{Total cost over the test episodes for the robot starting
-			 from the down position with the most trained network.}
-	\label{fig:Test_2_last_ep_down_pos}
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_2_joints_500_ep_256_len_17_res.png"}
+	\caption{Training cost-to-go over 500 episodes lasted 256 iterations having 2
+			 joint and 17 resolution steps.}
+	\label{fig:Train_cost_to_go_2_500_17}
 \end{figure}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_2_joints_1300_ep_256_len_11_res.png"}
+	\caption{Training cost-to-go over 1300 episodes lasted 256 iterations having 2
+			 joint and 11 resolution steps.}
+	\label{fig:Train_cost_to_go_2_1300_11}
+\end{figure}
+\vspace{-1cm}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=8.5cm]{"../Figures/Training_costs_2_joints_1300_ep_256_len_17_res.png"}
+	\caption{Training cost-to-go over 1300 episodes lasted 256 iterations having 2
+			 joint and 17 resolution steps.}
+	\label{fig:Train_cost_to_go_2_1300_17}
+\end{figure}
+
+Differently from what said in the case of the 1 joint configuration,
+the 2 joints one presents strong peaks in the graphs of the training cost to go
+explained by the divergence of the network visible in the loss graphs 
+represented in Figures \ref{fig:TrainLoss_2_1300_11}.
+% Test phase
 
 \begin{figure}[H]
 	\centering
