@@ -23,7 +23,7 @@ if __name__ == "__main__":
         q = np.pi + np.random.rand(pendulum.nq) * (0.3 - (-0.3)) + (-0.3)
         # v is the velocity of the joint
         v = np.zeros(pendulum.nq)
-        state = np.array([q, v])
+        state = np.hstack([q, v])
         test(pendulum, state)
 
     print("starting to test with almost horizontal position")
@@ -35,6 +35,6 @@ if __name__ == "__main__":
         q = np.pi/4 + np.random.rand(pendulum.nq) * (0.3 - (-0.3)) + (-0.3)
         # v is the velocity of the joint
         v = np.zeros(pendulum.nq)
-        state = np.array([q, v])
+        state = np.hstack([q, v])
         test(pendulum, state)
 
