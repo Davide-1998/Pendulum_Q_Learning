@@ -370,6 +370,28 @@ shows the setting 1300 episodes and 17 control resolution steps as the winning o
 \newpage
 
 \section{Conclusion}
+The project correctly trained a system to complete the task of balancing the
+pendulum by using the deep Q learning algorithm shown in \cite{Mnih}, both
+in the case of one single joint and in the case of two joints. Although the
+resulting motion is not perfect, and small continuous adjustments must be
+performed in order to maintain the pendulum in upright position, we judge the
+behaviour to be within acceptable bounds for a system ignorant of the exact
+dynamics of the pendulum.
+
+\subsection{Incorrect modelling of pendulum dynamics}
+During the development of the solution, we encountered a particular behaviour
+for the pendulum. Although we did not provided any torque to the joints it would
+move chaotically, not settling on the downright position that intuition would
+suggest. Such behaviour is show in the $error_test.py$ script, along with the
+solution found. By decreasing the value of the $b$ variable in its $dynamics$
+function to one tenth of its original value we were able to recreate the correct
+behaviour that intuition would suggest, meaning that a pendulum not in its
+equilibrium state oscillates and slow down to its downward position. Although
+we corrected this behaviour, we still tried to apply the main deep Q learning
+algorithm with the original pendulum dynamics. The system was still able to
+balance the pendulum, with one joint, even in this circumstances. Though it is
+to be noted that the training took considerable more time and the final
+result was not as accurate.
 
 \begin{thebibliography}{9}
 	\bibitem{Mnih}
