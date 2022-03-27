@@ -30,12 +30,12 @@
 
 \section{Abstract}
 The third assignment revolved around the task to implement a deep Q-Learning
-algorithm able to proficiently tackle the task to balance a pendulum.
+algorithm able to proficiently tackle the task of balancing a pendulum.
 This work focuses on the adaptation of the work in \cite{Mnih} to a simpler
 environment, along with many suggestion from \cite{Roderick} for
 implementing the details.
 The resulting deep neural network is able to accurately estimate the Q-function
-of the pendulum along with a greedy policy which together allows it to produce 
+of the pendulum along with a greedy policy which together allow it to produce 
 episodes with low cost, managing to balance the pendulum starting from any state.
 
 \section{Introduction}
@@ -74,18 +74,18 @@ means that if \(resolution=15\) and \(\#joints=2\), \(|U|=15^{2}=225\).
 In Figure \ref{fig:Network} is shown a graphical representation of the network
 in use.
 
-\label{fig:Network}
 \begin{figure}
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/Network_schema"}
 	\caption{Network architecture in case of $n\_joints$ composing the pendulum
 			 and a control discretization over 15 steps.}
+	\label{fig:Network}
 \end{figure}
 
 \section{System setup}
-The system provided as solution is composed by several objects:
+The system provided as solution is composed of several objects:
 \begin{itemize}
-	\item \textbf{Loss Function}:The training loss uses the common least
+	\item \textbf{Loss Function}: The training loss uses the common least
 		  squares method between the target \(Q^{-}\) values, produced using
 		  the current cost and the discounted minimum estimated cost of the
 		  next state using old network parameters, and the current \(Q\) value,
@@ -103,10 +103,11 @@ The system provided as solution is composed by several objects:
 		  the system produced during training and from which we randomly
 		  sample a mini-batch to be used for stochastic gradiant descent.
 		  Since the experience replay buffer has a limited size
-		  \(s\leq maximum\:size\) old transitions are progressively removed as
+		  \(s%\leq maximum\:size
+		  \) old transitions are progressively removed as
 		  new transitions are added when the size limit is reached.
 	\item \textbf{Policy}: The policy used during training is an
-		  \(\epsilon-greedy\) policy, similar to the one used in \cite{Mnih},
+		  \(\epsilon-greedy\) one, similar to the one used in \cite{Mnih},
 		  meaning a policy which select a random action with probability
 		  \(\epsilon\) and chooses the optimal action with probability
 		  \(1-\epsilon\). This behaviour is desirable due to the necessity of
@@ -138,19 +139,19 @@ These two parameters define, respectively, the number of the random starting
 positions from which the robot will start the training and the length of the
 search executed for each episode. At each step, the current state of the
 pendulum, \(x_{i}\), is processed by the policy, which produce the control
-\(u_{i}\) for this step. The control is applied on the pendulum, producing the
+\(u_{i}\). The control is applied on the pendulum, producing the
 next state \(x_{i+1}\) and the cost \(c_{i}\) of the pair
 \((x_{i},u_{i})\). This data are integrated as the transition \(t_{i}=(x_{i},
 u_{i}, c_{i}, x_{i+1})\) and added into the experience replay buffer. Once
 every \(k_{1}\) steps we proceed to perform a gradient descent execution,
 updating the current \(Q\)-network's parameters by sampling a mini-batch of
 random transitions from the experience replay buffer and back-propagating the
-loss described previously using Adam as optimizer. After gradient descent once
+loss described previously using Adam as optimizer. After gradient descent, once
 every \(k_{2}\) steps we update the \(Q\)-target network's parameters to match
 the current \(Q\) network ones.
 
 \section{Actor Network Testing}
-The testing of the actor network was carried out first, varying the starting
+The testing of the actor network was carried out first varying the starting
 position of the robot randomly and secondly making it start from the lowest
 position to ensure the goodness of the results.
 For each configuration three episodes were run and the sum of costs gathered
@@ -207,7 +208,7 @@ Following are shown the results in case the robot has 1 joint.
 
 % Training_cost_to_go
 Together with the training loss, it is also important to observe the behaviour
-of the episodes cost to go at the end of their length.
+of the episodes cost-to-go at the end of their length.
 
 \begin{figure}[H]
 	\centering
@@ -238,7 +239,7 @@ of the episodes cost to go at the end of their length.
 \end{figure}
 
 As shown in the graphs, the cost keeps decreasing until it reaches convergence
-in the latter episodes of the training, as shown in Figures
+in the latter episodes of the training, as seen in Figures
 \ref{fig:Train_cost_to_go_1_500_11} and \ref{fig:Train_cost_to_go_1_500_17}
 where it converges at around the $400^{th}$ episode, while using more
 training episodes also the convergence point is moved further in time as shown
@@ -283,7 +284,7 @@ Following are shown the results in case the robot has 2 joints.
 	\label{fig:TrainLoss_2_500_17}
 \end{figure}
 \vspace{-1cm}
-
+\vspace{0.3cm}
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=8.5cm]{"../Figures/training_loss_2J_1300E_256EL_11RES.png"}
@@ -301,7 +302,7 @@ Following are shown the results in case the robot has 2 joints.
 \end{figure}
 
 % Training cost-to-go
-Following are the graphs showing the training cost to go, gathered from the
+Following are the graphs showing the training cost-to-go, gathered from the
 training episodes.
 
 \begin{figure}[H]
@@ -338,7 +339,7 @@ training episodes.
 \end{figure}
 
 Differently from what said in the case of the 1 joint configuration,
-the 2 joints one presents strong peaks in the graphs of the training cost to go
+the 2 joints one presents strong peaks in the graphs of the training cost-to-go
 explained by the divergence of the network visible in the loss graphs 
 represented in Figures \ref{fig:TrainLoss_2_1300_11}.
 % Test phase
@@ -358,16 +359,15 @@ represented in Figures \ref{fig:TrainLoss_2_1300_11}.
 			 down positions using the best performing network.}
 	\label{fig:Test_2_best_net_down_pos}
 	\end{figure}
+
 It is possible to observe how differently from the 1 joint case, the 2 joints
 implementation shows a training loss which decreases at around 800 episodes
 to then increase again. This behaviour may be due to the non-linear
 approximation which does not grant convergence.
 Furthermore, in the testing phase, the setting having 1300 episodes and 11
 control resolution steps was the one leading to the lowest cumulative cost
-as shown in Figures \ref{fig:Test_2_last_ep_random_pos}, \ref{fig:Test_2_last_ep_down_pos} and
-\ref{fig:Test_2_best_net_down_pos}, while in Figure \ref{fig:Test_2_best_net_random_pos}
-shows the setting 1300 episodes and 17 control resolution steps as the winning one.
-\newpage
+as shown in Figures
+\ref{fig:Test_2_best_net_random_pos} and \ref{fig:Test_2_best_net_down_pos}.
 
 \section{Conclusion}
 The project correctly trained a system to complete the task of balancing the
@@ -392,6 +392,8 @@ algorithm with the original pendulum dynamics. The system was still able to
 balance the pendulum, with one joint, even in this circumstances. Though it is
 to be noted that the training took considerable more time and the final
 result was not as accurate.
+
+\vfill
 
 \begin{thebibliography}{9}
 	\bibitem{Mnih}
