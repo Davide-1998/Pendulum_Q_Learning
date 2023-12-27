@@ -6,7 +6,6 @@ import tensorflow as tf
 # cannot find reference 'keras' in '__init__.py'
 from keras import layers
 import numpy as np
-from orca.orca import init
 import json
 from manipulator.dpendulum import DPendulum
 from buffer import ExperienceReplay
